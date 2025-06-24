@@ -1,0 +1,14 @@
+Vision sensors type,Rate out of 10
+3D LiDAR,9
+2D LiDAR,6.5
+Intel RealSense D435,6
+Intel RealSense D435i,6.5
+Depth,6
+RGBD,6.5
+RGB,4.5
+Fisheye,5.5
+Six RGB,6
+Ultrasonic radar,4
+360° laser radar,9.5
+Stereo vision,7
+Eagle Eye,4.5
