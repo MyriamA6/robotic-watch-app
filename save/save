@@ -1,0 +1,12 @@
+
+# Actuators pie
+    with col9:
+        with st.container(border=True):
+            st.subheader("⚙️ Different Types of Actuators Used")
+            df_actuators = df.dropna(subset=["Actuator Type"])
+            df_actuators_count = process_multivalue_column(df_actuators, "Actuator Type")
+            fig_actu = px.pie(df_actuators_count, values="Count", names="Actuator Type",
+                              title="Distribution of Actuator Types")
+            fig_actu.update_layout(autosize=False, width=500, height =500)
+
+            st.plotly_chart(fig_actu)

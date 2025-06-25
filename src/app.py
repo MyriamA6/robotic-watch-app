@@ -14,7 +14,7 @@ page = st_navbar(pages=["Dashboard"],logo_path=logo,
                  styles={"nav": {
                      "background-color": "black",
                      "font-family": "Helvetica",
-                     "height": "4rem",
+                     "height": "4.5rem",
                      "text-color": "white !important",
                      # This will push the logo to the left, and the group of links to the right
                      "justify-content": "left",

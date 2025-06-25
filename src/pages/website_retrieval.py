@@ -1,9 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-import streamlit as st
-import time
-from itertools import cycle
 
 def website_retrieval():
     # webscraping to retrieve the news solely from the website "https://www.humanoidsdaily.com/"
@@ -43,7 +40,7 @@ def website_retrieval():
 
         dd_date = div_date.find("dd")
 
-        time_date = div_date.find("time")
+        time_date = dd_date.find("time")
 
         date = time_date.text
 
@@ -62,11 +59,14 @@ def website_retrieval():
 
         link = urljoin(init_url, sub_div_title_h2_a.attrs["href"])
 
+        summary = div_title.find("div", class_="prose max-w-none text-gray-500 dark:text-gray-400")
+
         news[cpt] = {
             "title": title,
             "link": link,
             "date": date,
-            "image": image
+            "image": image,
+            "summary": summary.text.split(".")[0]
         }
 
         cpt += 1

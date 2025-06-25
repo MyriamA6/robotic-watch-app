@@ -15,7 +15,7 @@ def dashboard():
     # Retrieval of the path to the current directory
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
-    anchor_ids =["title","map-repartition","company-repartition","img-interv","physical-prop", "img-hum-flow","top-robots-1","ai-tech","dashboard2","camera-type","company-vision", "autonomy-time","payload-time","speed-time","robots-produced"]
+    anchor_ids =["title","map-repartition","company-repartition","img-interv","physical-prop", "img-hum-flow", "means","top-robots-1","ai-tech","dashboard2","camera-type","company-vision", "autonomy-time","payload-time","speed-time","robots-produced"]
 
     # Retrieval of the dataset
     dataset_file=os.path.join(general_directory,"..","../data/updated_humanoid_data.csv")
@@ -47,8 +47,8 @@ def dashboard():
 
     # Showing the repartition of creators of robots
     # The bigger the point, the more the corresponding country has recently invented robots
-
-    st.subheader("World repartition of humanoid robots creators :earth_americas:",anchor="map-repartition")
+    st.subheader("   ",anchor="map-repartition")
+    st.subheader("World repartition of humanoid robots creators :earth_americas:")
     with st.container(border=True):
         fig = px.scatter_map(country_counts,
                              lat="Latitude", lon="Longitude",
@@ -78,7 +78,8 @@ def dashboard():
 
 
     # This chart shows how companies building humanoid robots are distributed across different countries, based on their count.
-    st.subheader("Humanoid Robot Companies Around the World :earth_americas:: ", anchor="company-repartition")
+    st.subheader("   ", anchor="company-repartition")
+    st.subheader("Humanoid Robot Companies Around the World :earth_americas:: ")
     with st.container(border=True):
         fig_rep = px.pie(
             distribution_companies_country,
@@ -92,11 +93,12 @@ def dashboard():
 
 
     # image from Morgan Stanley
-    st.subheader("Humanoid Enablers - ***:grey[Morgan Stanley]***", anchor="img-interv")
+    st.subheader("   ", anchor="img-interv")
+    st.subheader("Humanoid Enablers - ***:grey[Morgan Stanley]***")
     st.image(os.path.join(general_directory,"..","..","data/images/humanoid_map.png"))
 
-
-    st.subheader("Physical properties based repartition of robots", anchor="physical-prop")
+    st.subheader("   ", anchor="physical-prop")
+    st.subheader("Physical properties based repartition of robots")
 
     # Scatter plot of the robots based on their weight and height
 
@@ -111,11 +113,11 @@ def dashboard():
             color="Robot Name+A1:AB1",
             hover_name="Robot Name+A1:AB1",
             hover_data=["Robot Name+A1:AB1","Company","Country","Region","Year Unveiled", "Two Hand Payload (kg)"],
-            title="Robot Specifications"
+            title="The bigger the point, the heavier the robot can lift."
         )
 
         fig.update_layout(legend=dict(font=dict(size=10)))
-        fig.update_layout(autosize=False, width=1000, height=600)
+        fig.update_layout(autosize=False, width=1000, height=500)
 
         st.plotly_chart(fig)
 
@@ -157,10 +159,29 @@ def dashboard():
 
         st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("Understanding humanoid robots - ***:grey[Morgan Stanley]***", anchor="img-hum-flow")
+    st.subheader("  ",anchor="img-hum-flow")
+    st.subheader("Understanding humanoid robots - ***:grey[Morgan Stanley]***")
     st.image(os.path.join(general_directory,"..","..","data/images/robot_representation.png"))
 
-    st.subheader(":trophy: Top Robots by Category", anchor="top-robots-1")
+    # Mean of several data
+    weight_mean = round(df["Weight (kg)"].mean(), 2)
+    height_mean = round(df["Height(cm)"].mean(), 2)
+    payload_mean = round(df["Two Hand Payload (kg)"].mean(), 2)
+    dof_mean = round(df["Total Degrees of Freedom (DOF)"].mean(), 2)
+
+    st.subheader("   ", anchor = "means")
+    st.subheader("A recap of some useful data")
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        col3, col4 = st.columns(2)
+        col1.metric(label="Average weight in kg :scales:", value=weight_mean)
+        col2.metric(label="Average height in cm :straight_ruler:", value=height_mean)
+        col3.metric(label="Average payload in kg :package:", value=payload_mean)
+        col4.metric(label="Average total degrees of freedom :feather:", value=dof_mean)
+
+
+    st.subheader("   ",anchor="top-robots-1")
+    st.subheader(":trophy: Top Robots by Category")
     c1,c2,c3 = st.columns(3)
 
     # Board of the best robots in each selected category
@@ -195,7 +216,8 @@ def dashboard():
             st.subheader(":wave: Higher DOF", anchor="b-dof")
             show_top(df, "Total Degrees of Freedom (DOF)", ascending=False)
 
-    st.subheader(":computer: AI Analysis :", anchor="ai-tech")
+    st.subheader("  ", anchor="ai-tech")
+    st.subheader(":computer: AI Analysis :")
     col3,col4=st.columns(2)
     with col3:
 
@@ -226,8 +248,8 @@ def dashboard():
 
 
 
-
-    st.subheader("Mini Dashboard", anchor="dashboard2")
+    st.subheader("  ", anchor="dashboard2")
+    st.subheader("Mini Dashboard")
     col5, col6 = st.columns(2)
     with col5:
         with st.container(border=True):
@@ -296,7 +318,8 @@ def dashboard():
 
     st.divider()
 
-    st.subheader("Repartition of vision sensors type used by companies", anchor="camera-type")
+    st.subheader("    ", anchor="camera-type")
+    st.subheader("Repartition of vision sensors type used by companies")
     df_camera = df.copy()
     df_camera= df_camera.dropna(subset=["Vision Sensors type"])
 
@@ -307,11 +330,11 @@ def dashboard():
     list_of_sensors = []
 
     # Retrieving different names of rgbd cameras to rename them
-
-    same_cam_depth = ["rgbd", "rgb-d","depth camera", "depth cameras","rgb-d camera", "rgbd cameras"]
+    same_cam_depth = ["rgbd", "rgb-d","depth camera","depth","intel", "depth cameras","rgb-d camera", "rgbd cameras"]
     for sensor in separated_sensors:
         tp=sensor.strip().lower()
-        if tp in same_cam_depth:
+        depth_cam =any([elem in tp for elem in same_cam_depth])
+        if depth_cam:
             list_of_sensors.append("rgbd")
         else :
             list_of_sensors.append(tp)
@@ -344,8 +367,10 @@ def dashboard():
     st.plotly_chart(fig_camera, use_container_width=True)
 
     companies = df_camera["Company"].unique()
+
     df_table = pd.DataFrame(index=sorted(companies))
-    st.subheader("Companies using each vision sensor", anchor="company-vision")
+    st.subheader("   ", anchor="company-vision")
+    st.subheader("Companies using each vision sensor")
     for camera in result:
         if camera in df_camera.columns:
             companies_using = df_camera[df_camera[camera] == 1]["Company"].unique()
@@ -371,26 +396,29 @@ def dashboard():
     # Some plot to analyse the evolution of features with time
     st.write("This section presents analysis of the evolution of some features throughout the years.")
 
-    st.subheader(":battery: Autonomy evolution : ", anchor="autonomy-time")
+    st.subheader("   ", anchor="autonomy-time")
+    st.subheader(":battery: Autonomy evolution : ")
     # Line chart to show evolution of autonomy
     with st.container(border=True):
         st.write("Study of average autonomy evolution of robots based on the year they were unveiled.")
         plot_mean_over_years(df,"Autonomy (hour)")
 
     # Line chart to show evolution of payload
-    st.subheader(":package: Payload evolution : ", anchor="payload-time")
+    st.subheader("   ", anchor="payload-time")
+    st.subheader(":package: Payload evolution : ")
     with st.container(border=True):
         st.write("Study of average payload evolution of robots based on the year they were unveiled.")
         plot_mean_over_years(df, "Two Hand Payload (kg)")
 
     # Line chart to show evolution of speed
-    st.subheader(":running_woman: Speed evolution : ", anchor="speed-time")
+    st.subheader("   ", anchor="speed-time")
+    st.subheader(":running_woman: Speed evolution : ")
     with st.container(border=True):
         st.write("Study of average speed evolution of robots based on the year they were unveiled.")
         plot_mean_over_years(df, "Speed (m/s)")
 
 
-
+    st.subheader("   ", anchor="robots-produced")
     st.subheader("Robots currently produced", anchor="robots-produced")
     st.divider()
 
@@ -412,8 +440,8 @@ def dashboard():
     df_prod=df[df["Status"]=="In Production"]
 
     for idx, robot in df_prod.iterrows():
-        st.subheader(f"**{robot['Robot Name+A1:AB1']}** - :grey[*{robot['Company']}*]",
-                     anchor="robot-info" + str(idx))
+        st.subheader("  ", anchor="robot-info" + str(idx))
+        st.subheader(f"**{robot['Robot Name+A1:AB1']}** - :grey[*{robot['Company']}*]")
         with st.container(border=True):
             anchor_ids.append("robot-info" + str(idx))
 
@@ -443,8 +471,18 @@ def dashboard():
 
             # Plus some info on the robot
             with subcol2 :
-                st.metric(label="Cost :heavy_dollar_sign: :", value=robot['Cost(USD)'])
-                st.metric(label= "Quantity :", value= robot['Production Capacity (units/year)']+" units/year")
+                cost_robot= robot['Cost(USD)']
+                if cost_robot is not None and cost_robot != np.nan :
+                    st.metric(label="Cost :heavy_dollar_sign: :", value=cost_robot)
+                else :
+                    st.metric(label="Cost :heavy_dollar_sign: :", value="Not found")
+
+                prod_cap = robot['Production Capacity (units/year)']
+                if prod_cap is not None and prod_cap != np.nan :
+                    st.metric(label= "Quantity :", value= robot['Production Capacity (units/year)']+" units/year")
+                else :
+                    st.metric(label= "Quantity :", value="Not found")
+
 
                 values = []
                 for cat in categories:
@@ -485,7 +523,8 @@ def dashboard():
     anchor_ids.extend(next_ids)
 
     # Histogram of Primary Use-case of robots
-    st.subheader("Frequency of primary use cases for humanoid robots", anchor= "primary-use-case")
+    st.subheader("   ", anchor= "primary-use-case")
+    st.subheader("Frequency of primary use cases for humanoid robots")
 
     st.divider()
 
@@ -495,17 +534,22 @@ def dashboard():
                  names="Primary Use-Case",
                  values="Count",
                  )
+
     fig.update_layout(autosize=False, width=1000,height=500,xaxis_title="Primary Use-Case", yaxis_title="Number of Robots")
     st.plotly_chart(fig, use_container_width=True)
     st.divider()
 
     # Creation of a pie chart of the main companies in the humanoid robots market
     # On all companies, wheeled robots included
+
     distribution_companies = df.groupby("Company").size().reset_index(name="Count")
     low_count = distribution_companies[distribution_companies["Count"] <= 1]["Count"].sum()
+
     distribution_companies = distribution_companies[distribution_companies["Count"] > 1]
 
-    st.subheader("Main humanoid robots creators :", anchor="humanoid-creators")
+
+    st.subheader("   ", anchor="humanoid-creators")
+    st.subheader("Main humanoid robots creators :")
     st.divider()
     names = distribution_companies["Company"].unique()
     for name in names:
@@ -521,7 +565,9 @@ def dashboard():
 
     st.divider()
 
-    st.subheader(":money_with_wings: Average robot cost per primary use case", anchor="cost-vs-primary-use-case")
+    st.subheader("   ", anchor="cost-vs-primary-use-case")
+
+    st.subheader(":money_with_wings: Average robot cost per primary use case")
     st.divider()
 
     # Plot of the average cost of robots by primary use-case combined with the standard deviation
@@ -540,8 +586,10 @@ def dashboard():
     st.plotly_chart(fig, use_container_width=True)
     st.divider()
 
-    st.subheader(":heavy_plus_sign: More analysis ", anchor = "more-analysis")
+    st.subheader("   ", anchor = "more-analysis")
+    st.subheader(":heavy_plus_sign: More analysis ")
 
+    # function to preprocess data of a given column to plot the pie chart of the proportion of the different elements it contains
     def process_multivalue_column(df, column_name,personalised_comment=""):
         df = df.copy()
         df[column_name] = df[column_name].fillna(personalised_comment)
@@ -572,36 +620,33 @@ def dashboard():
             fig_safe.update_layout(autosize=False, width=500, height =460)
             st.plotly_chart(fig_safe)
 
-    with col9:
-        with st.container(border=True):
-            st.subheader("⚙️ Different Types of Actuators Used")
-            df_actuators = df.dropna(subset=["Actuator Type"])
-            df_actuators_count = process_multivalue_column(df_actuators, "Actuator Type")
-            fig_actu = px.pie(df_actuators_count, values="Count", names="Actuator Type",
-                              title="Distribution of Actuator Types")
-            fig_actu.update_layout(autosize=False, width=500, height =500)
 
-            st.plotly_chart(fig_actu)
-    anchor_ids.extend(["more-analysis"])
+    anchor_ids.extend(["more-analysis","news"])
 
-    anchor_ids.append("news")
+    st.subheader("   ", anchor="news")
 
-    st.subheader(":newspaper: News in the humanoid world of the day :   -   ***:grey[humanoidsdaily]***", anchor="news")
-    st.divider()
+    st.subheader(":newspaper: News in the humanoid world of the day   -   ***:grey[humanoidsdaily]***")
     from .website_retrieval import website_retrieval
 
     news = website_retrieval()
-    print(news)
     html_blocks = ""
     for idx, (i, item) in enumerate(news.items()):
         html_blocks += f"""
-                    <div class="news-item" id="news-{i}" style="display:block; margin-top: 1rem; margin-bottom: 1rem; text-align:center; max-height=none; overflow :visible; font-family: Arial, sans-serif;">
-                        <img src="{item['image']}" style="width: 90%; height:500px; object-fit: cover; border-radius: 20px;" />
-                        <h2>{item['title']}</h2>
-                        <p>{item['date']}</p>
+                    <div class="news-item" id="news-{i}" 
+                    style="border: 2px outset lightgrey; border-radius: 20px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+                    background-color: rgb(252, 252, 252); 
+                    text-align: center; display:block; margin-top: 1rem; margin-bottom: 1rem; text-align:center; max-height=none; overflow :visible; font-family: Trebuchet MS, sans-serif;">
+                    <h2 style = " margin-left:30px ; margin-right : 30px; ">{item['title']}</h2>
+                    <p style = " margin-left:30px ; margin-right : 30px; ">{item['summary']}</p>
+                    <p style="color:grey">{item['date']}</p>
+                    <img src="{item['image']}" style="width: 90%; height:400px; object-fit: contain; border-radius: 20px; margin-bottom : 20px" />
+
                     </div>
                     """
 
+
+    # javascript to allow autoscroll
     display_time_seconds = 2 # Display time of each section
 
     js_code = f"""
@@ -633,7 +678,7 @@ def dashboard():
                     // === News slideshow logic ===
                     let newsIndex = 0;
                     const newsItems = document.querySelectorAll(".news-item");
-                    const newsDelay = 4000;  
+                    const newsDelay = 7000; // each slide visible for 7 seconds
                     const lastNewsId = "news-{len(news)}"; 
 
                     function showNews(index) {{
@@ -657,8 +702,7 @@ def dashboard():
                 """
 
     html(f"""<div>{html_blocks}</div>
-         {js_code}
-         """, height=800)
+         """, height=650)
     st.divider()
 
 
@@ -674,3 +718,4 @@ def dashboard():
 
 
 
+8
