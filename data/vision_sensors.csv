@@ -1,0 +1,8 @@
+Vision_sensors;other_names
+rgbd;rgbd, rgb-d, depth, depth camera, depth cameras, intel, intel realsense, rgb-d camera, rgbd cameras,stereo, stereo camera, stereo cameras
+lidar;lidar, 3d lidar, lidar 3d
+fisheye;fisheye, fisheye cameras, fisheye camera, wide angle, wide-angle
+thermal;thermal, thermal camera, infrared, ir camera
+rgb;rgb, color camera, regular camera
+not specified;n.d, n/a, not specified,n/d
+

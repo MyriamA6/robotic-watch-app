@@ -8,6 +8,7 @@ from streamlit.components.v1 import html, iframe
 import os
 import json
 import re
+from collections import Counter
 
 # Function to show the dashboard
 def dashboard():
@@ -21,12 +22,27 @@ def dashboard():
     dataset_file=os.path.join(general_directory,"..","../data/updated_humanoid_data.csv")
     df = pd.read_csv(dataset_file)
 
+    df = df.replace(
+        to_replace=r'(?i)^\s*(n/d|n\.d|//n|n/a|na|none|null)\s*$',
+        value=None,
+        regex=True
+    )
+
+
+
     # Description of the content of the webpage
-    st.title(":bar_chart: Market Analysis of humanoid Robots", anchor="title")
+    st.title(":bar_chart: Humanoid Insights", anchor="title")
     st.divider()
     st.write("This page is dedicated to explore the features for the registered humanoid robots :robot_face: and their evolution."
-             + "\n\nRankings :trophy:,  Average specs of prototypes :wrench:,  currently produced ones :mechanical_arm:,..."
-             +"\n\n:information_source: Find many information below : ")
+             + "\n\nRankings,  Average specs of prototypes,  currently produced ones,...")
+
+    st.markdown(":warning:  **Disclaimer: The data presented here may be incomplete, inaccurate, or outdated. "
+             "It is provided for informational purposes only and should not be considered as definitive or fully reliable. "
+             "Use it solely to gain a general approximation of the current state of the humanoid robotics market. "
+             "Independent verification is recommended before drawing any conclusions or making decisions based on this information.**")
+
+
+
     st.divider()
 
     numerical_columns=df[["Cost(USD)","Weight (kg)","Height(cm)","Speed (m/s)","Autonomy (hour)","Total Degrees of Freedom (DOF)","Body Degrees of Freedom (DOF)","Hands Degrees of Freedom (DOF)","Two Hand Payload (kg)"]]
@@ -49,6 +65,7 @@ def dashboard():
     # The bigger the point, the more the corresponding country has recently invented robots
     st.subheader("   ",anchor="map-repartition")
     st.subheader("World repartition of humanoid robots creators :earth_americas:")
+    st.markdown("**:blue[The bigger the point, the more a country has created humanoid robots.]**")
     with st.container(border=True):
         fig = px.scatter_map(country_counts,
                              lat="Latitude", lon="Longitude",
@@ -79,7 +96,7 @@ def dashboard():
 
     # This chart shows how companies building humanoid robots are distributed across different countries, based on their count.
     st.subheader("   ", anchor="company-repartition")
-    st.subheader("Humanoid Robot Companies Around the World :earth_americas:: ")
+    st.subheader("Humanoid Robot Main Producers Around the World :earth_americas:: ")
     with st.container(border=True):
         fig_rep = px.pie(
             distribution_companies_country,
@@ -101,7 +118,7 @@ def dashboard():
     st.subheader("Physical properties based repartition of robots")
 
     # Scatter plot of the robots based on their weight and height
-
+    st.markdown("###### :blue[The bigger the point, the heavier the robot can lift.]")
     with st.container(border=True):
         data_interactive=df.copy()
         data_interactive = data_interactive.dropna(subset=["Weight (kg)", "Height(cm)", "Two Hand Payload (kg)"])
@@ -112,9 +129,7 @@ def dashboard():
             size="Two Hand Payload (kg)",
             color="Robot Name+A1:AB1",
             hover_name="Robot Name+A1:AB1",
-            hover_data=["Robot Name+A1:AB1","Company","Country","Region","Year Unveiled", "Two Hand Payload (kg)"],
-            title="The bigger the point, the heavier the robot can lift."
-        )
+            hover_data=["Robot Name+A1:AB1","Company","Country","Region","Year Unveiled", "Two Hand Payload (kg)"])
 
         fig.update_layout(legend=dict(font=dict(size=10)))
         fig.update_layout(autosize=False, width=1000, height=500)
@@ -168,16 +183,21 @@ def dashboard():
     height_mean = round(df["Height(cm)"].mean(), 2)
     payload_mean = round(df["Two Hand Payload (kg)"].mean(), 2)
     dof_mean = round(df["Total Degrees of Freedom (DOF)"].mean(), 2)
+    speed_mean = round(df["Speed (m/s)"].mean(), 2)
+    autonomy_mean = round(df["Autonomy (hour)"].mean(), 2)
 
     st.subheader("   ", anchor = "means")
     st.subheader("A recap of some useful data")
     with st.container(border=True):
         col1, col2 = st.columns(2)
         col3, col4 = st.columns(2)
+        col5, col6 = st.columns(2)
         col1.metric(label="Average weight in kg :scales:", value=weight_mean)
         col2.metric(label="Average height in cm :straight_ruler:", value=height_mean)
-        col3.metric(label="Average payload in kg :package:", value=payload_mean)
+        col3.metric(label="Average payload in kg :mechanical_arm:", value=payload_mean)
         col4.metric(label="Average total degrees of freedom :feather:", value=dof_mean)
+        col5.metric(label="Average speed in m/s :feather:", value=speed_mean)
+        col6.metric(label="Average autonomy in hours :battery:", value= autonomy_mean)
 
 
     st.subheader("   ",anchor="top-robots-1")
@@ -222,6 +242,7 @@ def dashboard():
     with col3:
 
         with st.container(border=True):
+            df["AI Technology"].fillna("Not specified", inplace=True)
             st.subheader("Repartition of AI technologies used in the robots :")
             # Pie chart highlighting the proportion of use of each AI technology
             ai_techno_count= df.groupby("AI Technology").size().reset_index(name="Count")
@@ -254,7 +275,7 @@ def dashboard():
     with col5:
         with st.container(border=True):
             # Plot of the evolution of the cost of robots during the years
-            st.subheader(":moneybag: Cost evolution : ")
+            st.subheader(":moneybag: Average cost evolution over the years: ")
             plot_mean_over_years(df,"Cost(USD)")
 
 
@@ -316,82 +337,78 @@ def dashboard():
         df[keyword] = df[from_col].str.contains(pattern, case=False, na=False).astype(int)
         return df
 
+
     st.divider()
 
     st.subheader("    ", anchor="camera-type")
     st.subheader("Repartition of vision sensors type used by companies")
     df_camera = df.copy()
-    df_camera= df_camera.dropna(subset=["Vision Sensors type"])
+    df_camera["Vision Sensors type"].fillna("Not specified", inplace=True)
 
-    # Preprocessing data to find all different types of cameras
-    vision_sensors = list(df_camera["Vision Sensors type"].dropna())
-    all_sensors = " , ".join(vision_sensors).replace("\n", " ").replace("\r", " ")
-    separated_sensors = all_sensors.split(",")
-    list_of_sensors = []
+    df_sensor_map = pd.read_csv(os.path.join(general_directory,"../../data/vision_sensors.csv"), sep=";")
 
-    # Retrieving different names of rgbd cameras to rename them
-    same_cam_depth = ["rgbd", "rgb-d","depth camera","depth","intel", "depth cameras","rgb-d camera", "rgbd cameras"]
-    for sensor in separated_sensors:
-        tp=sensor.strip().lower()
-        depth_cam =any([elem in tp for elem in same_cam_depth])
-        if depth_cam:
-            list_of_sensors.append("rgbd")
-        else :
-            list_of_sensors.append(tp)
+    sensor_groups = {}
+    for _, row in df_sensor_map.iterrows():
+        key = row["Vision_sensors"].strip().lower()
+        keywords = [kw.strip().lower() for kw in row["other_names"].split(",")]
+        sensor_groups[key] = keywords
 
-    result = list(set(list_of_sensors))
-    if '' in result:
-        result.remove('')
+    def classify_sensor(sensor_name):
+        sensor_name = sensor_name.strip().lower()
+        for group, keywords in sensor_groups.items():
+            if any(kw in sensor_name for kw in keywords):
+                return group
+        return sensor_name
 
-    for camera in result:
-        df_camera = derive_spe_columns(df_camera,"Vision Sensors type",camera)
+    vision_sensors = df_camera["Vision Sensors type"].tolist()
+    all_sensors = ", ".join(vision_sensors).replace("\n", " ").replace("\r", " ")
+    separated_sensors = [s.strip() for s in all_sensors.split(",") if s.strip()]
 
-    # Count the number of time each vision sensors appears for each robot
-    camera_counts = {}
-    for camera in result:
-        if camera in df_camera.columns:
-            camera_counts[camera] = df_camera[camera].sum()
 
-    print(result)
-    # Building a dataframe for the pie chart
-    df_camera_count = pd.DataFrame({
-        "Camera Type": list(camera_counts.keys()),
-        "Count": list(camera_counts.values())
-    })
+    classified_sensors = [classify_sensor(sensor) for sensor in separated_sensors]
+    sensor_counts = Counter(classified_sensors)
 
-    # Print of pie chart
+    # 7. Diagramme circulaire
+    df_camera_count = pd.DataFrame(sensor_counts.items(), columns=["Camera Type", "Count"])
     fig_camera = px.pie(df_camera_count, values="Count", names="Camera Type",
                         title="Distribution of Vision Sensor Types")
-    fig_camera.update_layout(autosize=False, width=1000,height=600)
-
+    fig_camera.update_layout(autosize=False, width=1000, height=600)
     st.plotly_chart(fig_camera, use_container_width=True)
 
-    companies = df_camera["Company"].unique()
+    # ----------- COMPANY TABLE PART -------------
 
-    df_table = pd.DataFrame(index=sorted(companies))
-    st.subheader("   ", anchor="company-vision")
     st.subheader("Companies using each vision sensor")
-    for camera in result:
-        if camera in df_camera.columns:
-            companies_using = df_camera[df_camera[camera] == 1]["Company"].unique()
-            df_table[camera] = df_table.index.isin(companies_using).astype(int)
 
+    camera_types = list(set(classified_sensors))
+    companies = df_camera["Company"].unique()
+    df_table = pd.DataFrame(index=sorted(companies))
+
+    for cam_type in camera_types:
+        companies_using = []
+
+        for company in companies:
+            sensors_list = df_camera[df_camera["Company"] == company]["Vision Sensors type"].dropna().tolist()
+            all_text = ", ".join(sensors_list).lower()
+            if any(kw in all_text for kw in sensor_groups.get(cam_type, [cam_type])):
+                companies_using.append(company)
+
+        df_table[cam_type] = df_table.index.isin(companies_using).astype(int)
+
+    # 8. Affichage stylisé
     df_table = df_table.replace({1: "yes", 0: ""})
 
-
-    # function to color yes case in the dataframe
     def color_checkmark(val):
         if val == "yes":
             return 'background-color: #b2f2bb; color: black; font-weight: bold; text-align: center;'
         else:
             return 'background-color: lightgrey;'
 
-    # Applying the style
     styled_df = df_table.style.applymap(color_checkmark)
 
     st.dataframe(styled_df, height=560)
 
     st.divider()
+
 
     # Some plot to analyse the evolution of features with time
     st.write("This section presents analysis of the evolution of some features throughout the years.")
@@ -444,7 +461,6 @@ def dashboard():
         st.subheader(f"**{robot['Robot Name+A1:AB1']}** - :grey[*{robot['Company']}*]")
         with st.container(border=True):
             anchor_ids.append("robot-info" + str(idx))
-
             subcol1,subcol2=st.columns(2)
 
 
@@ -472,13 +488,13 @@ def dashboard():
             # Plus some info on the robot
             with subcol2 :
                 cost_robot= robot['Cost(USD)']
-                if cost_robot is not None and cost_robot != np.nan :
+                if cost_robot is not None and pd.notna(cost_robot) :
                     st.metric(label="Cost :heavy_dollar_sign: :", value=cost_robot)
                 else :
                     st.metric(label="Cost :heavy_dollar_sign: :", value="Not found")
 
                 prod_cap = robot['Production Capacity (units/year)']
-                if prod_cap is not None and prod_cap != np.nan :
+                if prod_cap is not None and pd.notna(prod_cap) :
                     st.metric(label= "Quantity :", value= robot['Production Capacity (units/year)']+" units/year")
                 else :
                     st.metric(label= "Quantity :", value="Not found")
@@ -609,10 +625,8 @@ def dashboard():
             "Count": list(value_counts.values())
         })
 
-    col8, col9 = st.columns(2)
 
-    with col8:
-        with st.container(border=True):
+    with st.container(border=True):
             st.subheader("🛡️ Different Security Standards Implemented")
             df_safety = process_multivalue_column(df, "Safety Features", personalised_comment= "Not specified")
             fig_safe = px.pie(df_safety, values="Count", names="Safety Features",
@@ -640,24 +654,21 @@ def dashboard():
                     <h2 style = " margin-left:30px ; margin-right : 30px; ">{item['title']}</h2>
                     <p style = " margin-left:30px ; margin-right : 30px; ">{item['summary']}</p>
                     <p style="color:grey">{item['date']}</p>
-                    <img src="{item['image']}" style="width: 90%; height:400px; object-fit: contain; border-radius: 20px; margin-bottom : 20px" />
-
+                    <img src="{item['image']}" style="width: 90%; height:350px; object-fit: contain; border-radius: 20px; margin-bottom : 20px" />
                     </div>
                     """
 
-
     # javascript to allow autoscroll
-    display_time_seconds = 2 # Display time of each section
+    display_time_seconds = 1 # Display time of each section
 
     js_code = f"""
                 <script>
-                    // === Autoscroll logic ===
+                    // === Autoscroll ===
                     const sectionIds = {json.dumps(anchor_ids)};
                     let currentSectionIndex = 0;
                     const displayTime = {display_time_seconds * 1000};
                     const specialAnchor = "news";
                     const specialDelay = 60000;
-
                     function scrollToSection() {{
                         const targetId = sectionIds[currentSectionIndex];
                         const targetElement = window.parent.document.getElementById(targetId);
@@ -702,7 +713,7 @@ def dashboard():
                 """
 
     html(f"""<div>{html_blocks}</div>
-         """, height=650)
+         """, height=700)
     st.divider()
 
 

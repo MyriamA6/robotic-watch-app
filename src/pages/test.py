@@ -22,7 +22,7 @@ result = list(set(list_of_sensors))
 result.remove('')
 
 """
-camera_rate = pd.read_csv(os.path.join(os.path.dirname(__file__),"..","..","data/vision_sensor_rating.csv"))
+camera_rate = pd.read_csv(os.path.join(os.path.dirname(__file__),"..","..","data/vision_sensors.csv"))
     def compute_camera_overall_rate(robot):
         cameras = camera_rate["Vision sensors type"]
         robot_vision_sensor = robot["Vision Sensors type"]

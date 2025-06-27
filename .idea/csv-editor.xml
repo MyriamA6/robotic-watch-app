@@ -17,7 +17,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\data\vision_sensor_rating.csv">
+        <entry key="\data\vision_sensors.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
