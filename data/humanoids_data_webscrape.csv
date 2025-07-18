@@ -1,0 +1,47 @@
+,Unnamed: 0,Robot Name,Company,Country,Region,Year Unveiled,Primary Use-Case,Status,Cost (USD),Production Capacity (units per year),Height(cm),Weight (kg),Mobility Type,Speed (m/s),Autonomy (hour),Total Degrees of Freedom (DOF),Body Degrees of Freedom (DOF),Hands Degrees of Freedom (DOF),Two Hand Payload (kg),Vision Sensors type,Speaker,Microphone,Safety Features,Actuator Type,Reducer Type,Motor Type,Force Sensor,Encoder per Actuator,Computing Power,AI Technology used,AI Partners,Customers or Testers,Can the robot converse naturally?
+0,0,Phoenix,Sanctuary AI,Canada,North America,2023,General Purpose,Prototype,40000,,170,70,bipedal,1.39,,75,,20,25,,,yes,,Electric,,,yes,,,LLM;DL;RL,,,yes
+1,1,Qinglong,RoboSense,China,Asia,2024,General Purpose,Prototype,,,175,,bipedal,1,,43,,,40,LiDAR,,yes,Advanced safety protocols,Electric,,,yes,,400 TOPs,,,,yes
+2,2,DR01,Deep Robotics,China,Asia,2024,Research,Prototype,200000,,170,80,bipedal,1.6,,12,,,15,,,yes,Advanced mobility sensors;Environmental sensors,Electric,,,yes,,,ML,,,yes
+3,3,SE01,ENGINEAI,China,Asia,2025,Service,Prototype,,,,,bipedal,,,,,,,,,yes,,Electric,Harmonic,,yes,,,,,,yes
+4,4,PM01-commercial edition,ENGINEAI,China,Asia,2024,Research,Prototype,20000,,138,40,bipedal,2,,24,,,15,RGBD,LiDAR,yes,,,Electric,,,yes,,,,,yes
+5,5,PM01-education edition,ENGINEAI,China,Asia,2024,Research,Prototype,15000,,138,40,bipedal,2,,24,,,15,RGBD,LiDAR,yes,,,Electric,,,yes,,,,,yes
+6,6,Digit,Agility Robotics,United States,North America,2019,Industrial/Logistics,In Production,,,175,42,bipedal,1.5,3,28,,,16,RGBD,,yes,,Electric,,,yes,,,,,,no
+7,7,Figure 02,Figure AI,United States,North America,2023,Industrial/Logistics,Prototype,130000,,168,60,bipedal,,5,29,,16,25,RGB,,yes,,Electric,,,yes,,,LLM,BMW,,yes
+8,8,Atlas,Boston Dynamics,United States,North America,2023,Research,Prototype,,,150,89,bipedal,1.5,,28,,,28,LiDAR;RGBD,,yes,Dynamic whole-body control,Electric,,,yes,,,,,,no
+9,9,Optimus Gen 2,Tesla,United States,North America,2023,General Purpose,Prototype,,,173,57,bipedal,2.2,,28,,,20,,,yes,,Electric,,,yes,,,LLM;CV,,,yes
+10,10,Phoenix,Sanctuary AI,Canada,North America,2023,General Purpose,Prototype,,,170,,bipedal,,,37,,,20,RGBD,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+11,11,H1-2,Unitree,China,Asia,2024,General Purpose,Prototype,128900,,180,73,bipedal,1.5,,30,,12,14,LiDAR,,yes,,Electric,,PMSM,yes,,Intel Core i5;Intel Core i7,,,,yes
+12,12,Agibot RAISE A1,Agibot,China,Asia,2024,General Purpose,Prototype,,,175,55,bipedal,1.94,,49,,,10,,,yes,,Electric,,,yes,,200 TOPS,,,,yes
+13,13,Walker S1,UBTECH,China,Asia,2023,Service,Prototype,,,145,77,bipedal,1.5,,38,28,10,10,,,yes,Advanced sensor integration,Electric,,,yes,,,,,,yes
+14,14,Xpeng Iron,XPENG,China,Asia,2024,Service,Prototype,,,160,70,bipedal,,,,,,,RGBD,,yes,,Electric,,,yes,,,,,,yes
+15,15,STAR1,RobotEra,China,Asia,2024,General Purpose,Prototype,134544,,171,65,bipedal,3.6,0.57,12,,,12,LiDAR,,yes,,Electric,,,yes,,275 TOPS,,,,yes
+16,16,GR-2,Fourier Robotics,China,Asia,2024,Research,Prototype,,,175,63,bipedal,,2,53,,12,6,,,yes,,Electric,,,yes,2,,, Mujoco,,yes
+17,17,4NE-1,Neura Robotics,Germany,Europe,2024,General Purpose,Prototype,,,180,80,bipedal,,,,,,15,RGBD,,yes,Touchless human detection,Electric,,,yes,,,,,,yes
+18,18,NEO Gamma,1X Technologies,Norway,Europe,2025,Service,Prototype,,,,,bipedal,,,,,,,,,yes,Soft covers for passive safety,Electric,,,yes,4,,LLM,,,yes
+19,19,NEO Beta,1X Technologies,Norway,Europe,2024,Service,Prototype,,,,,bipedal,,,,,,,,,yes,,Electric,,,yes,,,,,,yes
+20,20,EVE,1X Technologies,Norway,Europe,2020,Service,Prototype,,,183,83,wheeled,14.4,4,25,15,2,25,HDR,,yes,Advanced safety protocols,Electric,,1X Technologies Revo1,yes,,Intel Core i7;NVIDIA Jetson Xavier,,LLM, Tiger Global; Sandwater; Alliance Ventures; Skagerak Capital,yes
+21,21,Talos,PAL Robotics,Spain,Europe,2018,Research,Prototype,,,175,95,bipedal,1.5,,32,,,20,RGBD,,yes,Advanced safety protocols,Electric,Harmonic,AC,yes,,Intel Core i7,,ROS Consortium,,yes
+22,22,HMND 01,HUMANOID,United Kingdom,Europe,2024,General Purpose,Prototype,,,175,70,bipedal,1.5,4,41,,,15,RGBD,,yes,,Electric,,,yes,,,,,,yes
+23,23,Menteebot,Mentee Robotics,Israel,,2023,Research,Prototype,,,160,50,bipedal,1.2,,30,,,10,RGBD,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+24,24,Menteebot V3,Mentee Robotics,Israel,,2024,Research,Prototype,,,165,55,bipedal,1.5,,35,,,12,RGBD,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+25,25,A2 MAX,Agibot,China,Asia,2024,Industrial/Service,Prototype,,,175,85,bipedal,3,,67,22,19,40+,RGBD,Fisheye,yes,,,Electric,,,yes,200 TOPS,,,,yes
+26,26,A2,Agibot,China,Asia,2024,Industrial/Service,Prototype,,,175,85,bipedal,3,,67,22,19,40+,RGBD,Fisheye,yes,,,Electric,,,yes,200 TOPS,,,,yes
+27,27,A2 W,Agibot,China,Asia,2024,Industrial/Service,Prototype,,,175,85,bipedal,3,,67,22,19,40+,RGBD,Fisheye,yes,,,Electric,,,yes,200 TOPS,,,,yes
+28,28,Pudu D9,Pudu Robotics,China,Asia,2024,Service,Prototype,,,150,50,wheeled,1.2,,12,,,6,RGBD,,yes,Collision avoidance sensors,Electric,,,no,,,,,,no
+29,29,Borg 01,Borg Robotics,Sweden,Europe,2024,Industrial,Prototype,,,180,90,bipedal,1.8,8,40,,,18,LiDAR,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+30,30,Forerunner K2,Kepler Robotics,United States,North America,2024,Industrial,Prototype,25000,,178,85,bipedal,1.11,,52,,,15,,,yes,Advanced safety protocols,Planetary Roller Screw; Rotary Actuators,,,yes,,,,,,yes
+31,31,G1,Unitree,China,Asia,2024,Industrial,Prototype,,,180,80,bipedal,3.5,10,40,,,12,LiDAR,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+32,32,G1-EDU,Unitree,China,Asia,2024,Research,Prototype,,,180,80,bipedal,3.5,10,40,,,12,LiDAR,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+33,33,CL-1,LimX Dynamics,China,Asia,2024,Research,Prototype,,,,,bipedal,,,,,,,,,yes,Dynamic stair-climbing capabilities,Electric,,,yes,,,,,,yes
+34,34,Navigator 2,Naviai,China,Asia,2024,Industrial,Prototype,,,165,70,bipedal,1.5,,45,,,20,LiDAR,,yes,Advanced collision avoidance,Electric,,,yes,,,,,,yes
+36,36,Torobo,Tokyo Robotics,Japan,Asia,2023,Research,Prototype,,,160,70,bipedal,,,30,,,15,RGBD,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+37,37,Agibot G1,Agibot,China,Asia,2024,Industrial/Service,Prototype,,,175,85,bipedal,3,,67,22,19,40+,RGBD,Fisheye,yes,,,Electric,,,yes,200 TOPS,, n/d,,yes
+38,38,Clone Alpha,Clone Robotics,United States,North America,2024,Research,Prototype,,,175,70,bipedal,1.5,,36,,,20,RGBD,,yes,,Electric,,,yes,,,,,,yes
+39,39,Cloud Ginger XR-1,Dataa Robotics,China,Asia,2020,Service,In Production,,,170,60,bipedal,1.5,4,34,18,16,10,RGBD,,yes,Advanced safety protocols,Electric,Harmonic,BLDC,yes,,,,,,yes
+40,40,Mercury X1,Elephant Robotics,China,Asia,2024,Research,Prototype,,,,,wheeled,1.2,8,19,,,19,LiDAR,,yes,,Electric,,,yes,,NVIDIA Jetson Xavier,, Gazebo; Mujoco,,yes
+41,41,SA01,ENGINEAI,China,Asia,2024,Service,Prototype,,,165,60,bipedal,1.2,,30,,,12,RGBD,,yes,,Electric,,,yes,,,,,,yes
+42,42,CyberOne,Xiaomi,China,Asia,2022,Research,Prototype,,,177,52,bipedal,3.6,,21,,,13,RGBD,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
+43,43,Reachy 2,Pollen Robotics,France,Europe,2023,Research,Prototype,,,170,25,modular,0.6,8,16,,,7,RGBD,,yes,,Electric,,,yes,,Raspberry Pi,, LLM,,yes
+44,44,Mirokaï,Enchanted Tools,France,Europe,2023,Service,Prototype,,,150,,bipedal,,,,,,,RGBD,,yes,Soft covers for passive safety,Electric,,,yes,,,,,,yes
+45,45,Cloud Ginger 2.0,Dataa Robotics,China,Asia,2023,Service,Prototype,,,170,60,bipedal,,,34,,,10,RGBD,,yes,Advanced safety protocols,Electric,Harmonic,BLDC,yes,,,,,,yes
+46,46,GR-1,Fourier Intelligence,China,Asia,2023,Research,Prototype,,,165,55,bipedal,1.8,,40,,,10,RGBD,,yes,Advanced safety protocols,Electric,,,yes,,,,,,yes
