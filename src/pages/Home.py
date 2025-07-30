@@ -15,11 +15,11 @@ import qrcode
 def home() :
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
-    dataset_file=os.path.join(general_directory,"..","..","data/humanoid_data_cleaned.csv")
+    dataset_file=os.path.join(general_directory,"..","..","data/humanoid_data_cleaned2207.csv")
     df = pd.read_csv(dataset_file)
 
     df = df.replace(
-        to_replace=r'(?i)^\s*(n/d|n\.d|//n|n/a|na|none|null)\s*$',
+        to_replace=r'(?i)^\s*(n/d|n\.d|//n|n/a|na|nan|none|null)\s*$',
         value=None,
         regex=True
     )
@@ -33,6 +33,8 @@ def home() :
     print(df.columns)
     df = df.dropna(subset="Year Unveiled")
     df["Year Unveiled"] = df["Year Unveiled"].astype(int)
+    df["Country"]=df["Country"].str.strip()
+    df["Region"]=df["Region"].str.strip()
 
 
     df.to_csv(os.path.join(general_directory,"../../data/updated_humanoid_data.csv"), index=False)
@@ -154,7 +156,7 @@ def home() :
                 // === News slideshow logic ===
                 let newsIndex = 0;
                 const newsItems = document.querySelectorAll(".news-item");
-                const newsDelay = 10000;
+                const newsDelay = 6000;
 
                 function showNews(index) {{
                     newsItems.forEach((el, i) => {{
@@ -185,27 +187,51 @@ def home() :
     st.video("https://www.youtube.com/watch?v=YddS-aI097Q&t=4s", autoplay=True, loop=True)
 
 
-
     # Mean of several data
-    weight_mean = round(df["Weight (kg)"].mean(), 2)
-    height_mean = round(df["Height(cm)"].mean(), 2)
-    payload_mean = round(df["Two Hand Payload (kg)"].mean(), 2)
-    dof_mean = round(df["Total Degrees of Freedom (DOF)"].mean(), 2)
-    speed_mean = round(df["Speed (m/s)"].mean(), 2)
-    autonomy_mean = round(df["Autonomy (hour)"].mean(), 2)
+    df_wheeled = df[df["Mobility Type"]=="wheeled"]
+    weight_mean = round(df_wheeled["Weight (kg)"].mean(), 2)
+    height_mean = round(df_wheeled["Height(cm)"].mean(), 2)
+    payload_mean = round(df_wheeled["Two Hand Payload (kg)"].mean(), 2)
+    dof_mean = round(df_wheeled["Total Degrees of Freedom (DOF)"].mean(), 2)
+    speed_mean = round(df_wheeled["Speed (m/s)"].mean(), 2)
+    autonomy_mean = round(df_wheeled["Autonomy (hour)"].mean(), 2)
+
+    df_without_wheeled = df[df["Mobility Type"]!="bipedal"]
+    weight_mean_without_wheeled = round(df_without_wheeled["Weight (kg)"].mean(), 2)
+    height_mean_without_wheeled = round(df_without_wheeled["Height(cm)"].mean(), 2)
+    payload_mean_without_wheeled = round(df_without_wheeled["Two Hand Payload (kg)"].mean(), 2)
+    dof_mean_without_wheeled = round(df_without_wheeled["Total Degrees of Freedom (DOF)"].mean(), 2)
+    speed_mean_without_wheeled = round(df_without_wheeled["Speed (m/s)"].mean(), 2)
+    autonomy_mean_without_wheeled = round(df_without_wheeled["Autonomy (hour)"].mean(), 2)
+
 
     st.subheader("   ", anchor="means")
     st.title("What is the current market overview ?")
     st.subheader("   ")
     st.subheader("Essential Figures to Remember")
+
     with st.container(border=True):
-        col1, col2 = st.columns(2)
-        col1.metric(label="Average weight in kg :scales:", value=weight_mean)
-        col1.metric(label="Average height in cm :straight_ruler:", value=height_mean)
-        col1.metric(label="Average payload in kg :mechanical_arm:", value=payload_mean)
-        col2.metric(label="Average total degrees of freedom :feather:", value=dof_mean)
-        col2.metric(label="Average speed in m/s :running_man:", value=speed_mean)
-        col2.metric(label="Average autonomy in hours :battery:", value=autonomy_mean)
+        col1, col2, col3,col4 = st.columns(4)
+        col1.markdown("**Bipedal humanoid robots**")
+        col1.metric(label="Average weight in kg :scales:", value=weight_mean_without_wheeled)
+        col1.metric(label="Average height in cm :straight_ruler:", value=height_mean_without_wheeled)
+        col1.metric(label="Average payload in kg :mechanical_arm:", value=payload_mean_without_wheeled)
+        col2.markdown("   ")
+        col2.markdown("   ")
+        col2.write("   ")
+        col2.metric(label="Average total degrees of freedom :feather:", value=dof_mean_without_wheeled)
+        col2.metric(label="Average speed in m/s :running_man:", value=speed_mean_without_wheeled)
+        col2.metric(label="Average autonomy in hours :battery:", value=autonomy_mean_without_wheeled)
+        col3.markdown("**Wheeled humanoid robots**")
+        col3.metric(label="Average weight in kg :scales:", value=weight_mean)
+        col3.metric(label="Average height in cm :straight_ruler:", value=height_mean)
+        col3.metric(label="Average payload in kg :mechanical_arm:", value=payload_mean)
+        col4.markdown("   ")
+        col4.markdown("   ")
+        col4.write("   ")
+        col4.metric(label="Average total degrees of freedom :feather:", value=dof_mean)
+        col4.metric(label="Average speed in m/s :running_man:", value=speed_mean)
+        col4.metric(label="Average autonomy in hours :battery:", value=autonomy_mean)
 
     st.subheader("   ")
     st.subheader("   ")
@@ -346,14 +372,14 @@ def home() :
 
     # Function to show the n-best robots in a given category
     # The order of sort is also chosen by the dev
-    def show_top(df, column, ascending=False, n=4, unit="", info_sup=None):
+    def show_top(df, column, ascending=False, n=3, unit="", info_sup=None):
         top_df = df.copy()
         top_df[column] = pd.to_numeric(top_df[column], errors="coerce")
         top_df = top_df.dropna(subset=[column])
         top_df = top_df.sort_values(by=column, ascending=ascending).head(n)
 
         for _, row in top_df.iterrows():
-            if info_sup is not None:
+            if info_sup is not None and isinstance(row[info_sup],str):
                 st.markdown(
                     f"- **{row['Robot Name']}** ({row['Company']}): {row[column]} {unit}. NB: " + row[info_sup])
             else:
@@ -408,7 +434,9 @@ def home() :
     st.subheader("   ", anchor="humanoid-creators")
     st.subheader("Main humanoid robots creators :")
     names = distribution_companies["Company"].unique()
+    cpt=0
     for name in names:
+        cpt+=1
         with st.container(border=True):
             cb1, cb2 = st.columns(2)
             with cb1:
@@ -419,6 +447,8 @@ def home() :
             with cb2:
                 nb_robots = str(distribution_companies[distribution_companies["Company"] == name]["Count"].iloc[0])
                 st.markdown(f"**Has recently created **:red[{nb_robots}]** robots.** ")
+        if cpt==6 :
+            break
 
     st.divider()
 
@@ -604,7 +634,7 @@ def home() :
         // === percep slideshow logic ===
         let percepIndex = 0;
         const percepItems = document.querySelectorAll(".percep-block");
-        const percepDelay = 10000;
+        const percepDelay = 6000;
 
         function showpercep(index) {
         percepItems.forEach((el, i) => {
@@ -631,39 +661,6 @@ def home() :
 """,height=600)
 
 
-    def plot_feature_distribution(df, column_name, title, width=1000, height=600):
-        """
-        Crée un graphique de distribution à partir d'une colonne contenant des valeurs multiples séparées.
-
-        Args:
-            df (pd.DataFrame): Le DataFrame source.
-            column_name (str): Le nom de la colonne à traiter.
-            title (str): Le titre du graphique.
-            width (int): Largeur du graphique.
-            height (int): Hauteur du graphique.
-        """
-        df_temp = df.copy()
-        df_temp[column_name].fillna("Not specified", inplace=True)
-
-        # Joindre toutes les valeurs et normaliser les séparateurs
-        value_list = df_temp[column_name].tolist()
-        all_values = "; ".join(value_list).replace("\n", " ").replace("\r", " ")
-
-        # Normaliser les séparateurs multiples : and, &, / → ;
-        for sep in [" and ", " & ", "/", ","]:
-            all_values = all_values.replace(sep, ";")
-
-        # Séparer, nettoyer
-        cleaned_values = [s.strip() for s in all_values.split(";") if s.strip()]
-
-        # Compter les occurrences
-        value_counts = Counter(cleaned_values)
-        df_counts = pd.DataFrame(value_counts.items(), columns=[column_name, "Count"])
-
-        # Créer et afficher le graphique
-        fig = px.pie(df_counts, values="Count", names=column_name, title=title)
-        fig.update_layout(autosize=False, width=width, height=height)
-        st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("  ", anchor="ai-tech")
     st.subheader(":computer: AI Analysis :")
@@ -672,8 +669,42 @@ def home() :
     with col3:
         with st.container(border=True):
             st.subheader("Repartition of AI technologies used in the robots :")
-            plot_feature_distribution(df, "AI Technology used", "Distribution of AI Technologies",width=500,height=450)
 
+            df_temp = df.copy()
+            df_temp["AI Technology used"].fillna("Not specified", inplace=True)
+
+            # Joindre toutes les valeurs et normaliser les séparateurs
+            value_list = df_temp["AI Technology used"].tolist()
+            all_values = "; ".join(value_list).replace("\n", " ").replace("\r", " ")
+
+            # Normaliser les séparateurs multiples : and, &, /, ,
+            for sep in [" and ", " & ", "/", ","]:
+                all_values = all_values.replace(sep, ";")
+
+            # Séparer, nettoyer
+            cleaned_values = [s.strip() for s in all_values.split(";") if s.strip()]
+
+            # Compter les occurrences
+            value_counts = Counter(cleaned_values)
+            df_counts = pd.DataFrame(value_counts.items(), columns=["AI Technology used", "Count"])
+
+            # Calcul des pourcentages
+            total = df_counts["Count"].sum()
+            df_counts["Percentage"] = df_counts["Count"] / total * 100
+
+            # Regrouper les < 3% en "Others"
+            df_counts["AI Technology used"] = df_counts.apply(
+                lambda row: row["AI Technology used"] if row["Percentage"] >= 3 else "Others",
+                axis=1
+            )
+
+            # Regrouper à nouveau après remplacement
+            df_counts = df_counts.groupby("AI Technology used", as_index=False)["Count"].sum()
+
+            # Créer et afficher le graphique
+            fig = px.pie(df_counts, values="Count", names="AI Technology used", title="Distribution of AI Technologies")
+            fig.update_layout(autosize=False, width=500, height=450)
+            st.plotly_chart(fig, use_container_width=True)
     # --- Colonne 4 : Capacité des robots à parler naturellement ---
     with col4:
         with st.container(border=True):
@@ -697,7 +728,35 @@ def home() :
     st.subheader("  ", anchor="safety")
     st.subheader("🛡️ Different Security Standards Implemented")
     with st.container(border=True):
-            plot_feature_distribution(df, "Safety Features", "Distribution of Safety Features")
+
+        st.subheader("Safety features used in the robots")
+
+        # 1. Copier et nettoyer les données
+        df_temp = df.copy()
+        df_temp["Safety Features"].fillna("not specified", inplace=True)
+
+        # 2. Concaténer et normaliser les séparateurs
+        value_list = df_temp["Safety Features"].tolist()
+        all_values = "; ".join(value_list).replace("\n", " ").replace("\r", " ")
+        for sep in [" and ", " & ", "/", ","]:
+            all_values = all_values.replace(sep, ";")
+
+        # 3. Séparer, nettoyer, mettre en minuscule
+        cleaned_values = [s.strip().lower() for s in all_values.split(";") if s.strip()]
+
+        # 4. Compter les occurrences
+        value_counts = Counter(cleaned_values)
+        df_counts = pd.DataFrame(value_counts.items(), columns=["safety feature", "count"])
+
+        # 5. Calculer les pourcentages
+        total = df_counts["count"].sum()
+        df_counts["percentage"] = df_counts["count"] / total * 100
+
+        # 6. Trier par pourcentage décroissant
+        df_counts = df_counts.sort_values(by="percentage", ascending=False).reset_index(drop=True)
+
+        # 7. Afficher dans un tableau Streamlit
+        st.dataframe(df_counts.style.format({"percentage": "{:.1f}%"}))
 
     st.subheader("   ", anchor="s3")
     st.title("What do the humanoid robots actually do?")
@@ -776,84 +835,91 @@ def home() :
 
     for idx, robot in df_prod.iterrows():
         st.subheader("  ", anchor="robot-info" + str(idx))
-        st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*]")
-        with st.container(border=True):
-            anchor_ids.append("robot-info" + str(idx))
-            subcol1,subcol2=st.columns(2)
 
+        # Compter les NaNs dans les catégories critiques
+        categories = [
+            "Height(cm)", "Weight (kg)", "Total Degrees of Freedom (DOF)",
+            "Two Hand Payload (kg)", "Speed (m/s)", "Autonomy (hour)"
+        ]
 
-            # Retrieving the right image
-            with subcol1:
-                image_path = os.path.join(general_directory,"..",
-                                          "../data/images/" + robot['Robot Name']+ ".png")
-                if os.path.exists(image_path):
-                    st.image(image_path, width=115)
-                else:
-                    st.write("No image found")
-                categories = ["Height(cm)",
-                    "Weight (kg)",
-                    "Total Degrees of Freedom (DOF)",
-                    "Two Hand Payload (kg)",
-                    "Speed (m/s)",
-                    "Autonomy (hour)"]
+        missing_count = sum(
+            robot[col] is None or pd.isna(robot[col]) for col in categories
+        )
 
-                st.write("**SPECS INFO** :wrench::")
-                for col in categories :
-                    if robot[col] is not None:
-                        st.write(f"- **{col}:** {robot[col]}")
+        # Seuil maximal de valeurs manquantes tolérées (ex. 3 sur 6)
+        missing_threshold = 4
 
+        if missing_count > missing_threshold:
+            # Trop de données manquantes → on affiche seulement le nom
+            st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*] - not enough information")
+        else:
+            # Fiche complète
+            st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*]")
 
-            # Plus some info on the robot
-            with subcol2 :
-                cost_robot= robot['Cost (USD)']
-                if cost_robot is not None and pd.notna(cost_robot) :
-                    st.metric(label="Cost :heavy_dollar_sign: :", value=cost_robot)
-                else :
-                    st.metric(label="Cost :heavy_dollar_sign: :", value="Not found")
+            with st.container(border=True):
+                anchor_ids.append("robot-info" + str(idx))
+                subcol1, subcol2 = st.columns(2)
 
-                prod_cap = robot['Production Capacity (units per year)']
-                if prod_cap is not None and pd.notna(prod_cap) :
-                    st.metric(label= "Quantity :", value= robot['Production Capacity (units per year)']+" units/year")
-                else :
-                    st.metric(label= "Quantity :", value="Not found")
+                with subcol1:
+                    image_path = os.path.join(general_directory, "..",
+                                              "../data/images/" + robot['Robot Name'] + ".png")
+                    if os.path.exists(image_path):
+                        st.image(image_path, width=115)
+                    else:
+                        st.write("No image found")
 
+                    st.write("**SPECS INFO** :wrench::")
+                    for col in categories:
+                        if robot[col] is not None and pd.notna(robot[col]):
+                            st.write(f"- **{col}:** {robot[col]}")
 
-                values = []
-                for cat in categories:
-                    try:
-                        val = float(robot.get(cat))
-                    except:
-                        val = np.nan
-                    values.append(min_max_scale(df,cat,val))
+                with subcol2:
+                    cost_robot = robot['Cost (USD)']
+                    if cost_robot is not None and pd.notna(cost_robot):
+                        st.metric(label="Cost :heavy_dollar_sign: :", value=cost_robot)
+                    else:
+                        st.metric(label="Cost :heavy_dollar_sign: :", value="Not found")
 
-                values += values[:1]
-                categories += categories[:1]
+                    prod_cap = robot['Production Capacity (units per year)']
+                    if prod_cap is not None and pd.notna(prod_cap):
+                        st.metric(label="Quantity :", value=prod_cap + " units/year")
+                    else:
+                        st.metric(label="Quantity :", value="Not found")
 
-                fig = go.Figure(
-                    data=[
-                        go.Scatterpolar(
-                            r=values,
-                            theta=categories,
-                            fill='toself',
-                            name=robot['Robot Name']
-                        )
-                    ],
-                    layout=go.Layout(
-                        polar=dict(
-                            radialaxis=dict(
-                                visible=True,
-                                range=[0, 1]
+                    # Radar chart
+                    values = []
+                    for cat in categories:
+                        try:
+                            val = float(robot.get(cat))
+                        except:
+                            val = np.nan
+                        values.append(min_max_scale(df, cat, val))
+
+                    values += values[:1]
+                    categories += categories[:1]
+
+                    fig = go.Figure(
+                        data=[
+                            go.Scatterpolar(
+                                r=values,
+                                theta=categories,
+                                fill='toself',
+                                name=robot['Robot Name']
                             )
-                        ),
-                        showlegend=False,
-                        title="Radar Chart Technical Specs 🔧",
+                        ],
+                        layout=go.Layout(
+                            polar=dict(
+                                radialaxis=dict(visible=True, range=[0, 1])
+                            ),
+                            showlegend=False,
+                            title="Radar Chart Technical Specs 🔧",
+                        )
                     )
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
 
-    anchor_ids.extend(["s4","country-cost-comp","tot-fundraise","market-description","warnings","poll"])
+    anchor_ids.extend(["s4","country-cost-comp","tot-fundraise","market-description","val-share","warnings","poll"])
 
     st.subheader("    ")
     st.title("What is the current economic situation?", anchor="s4")
@@ -891,8 +957,8 @@ def home() :
 
 
 
-
-    st.subheader("📊 Total Fundraising in Humanoid Robotics (2018+)", anchor ="tot-fundraise")
+    st.subheader("   ", anchor="tot-fundraise")
+    st.subheader("📊 Total Fundraising in Humanoid Robotics (2018+)")
     df_humanoid_market = pd.read_csv(os.path.join(general_directory,"../../data/humanoid_company_market_analysis.csv"), delimiter=";", index_col="Company")
     df_humanoid_market = df_humanoid_market.T
 
@@ -935,6 +1001,21 @@ def home() :
                 ax=0,
                 ay=-40,
                 font=dict(color="red", size=12)
+            ),
+            dict(
+                x=2024,
+                y=df_total.loc[df_total["Year"] == 2024, "Total Fundraising"].values[0]-100_000_000,
+                ax=2023,
+                ay=df_total.loc[df_total["Year"] == 2023, "Total Fundraising"].values[0]+100_000_000,
+                xref="x",
+                yref="y",
+                axref="x",
+                ayref="y",
+                text="AI included in robotics",
+                showarrow=True,
+                arrowhead=3,
+                font=dict(color="red", size=12),
+                arrowcolor="black"
             )
         ]
     )
@@ -1059,6 +1140,7 @@ def home() :
             <ul>
                 <li>Battery capacity is limited by size and weight.</li>
                 <li>Energy optimization is essential for autonomy and safety.</li>
+                <li>Need to choose an optimal battery, not overheating too much after an action from the robot</li>
             </ul>
             """
         },
@@ -1174,7 +1256,7 @@ def home() :
     // === Challenge slideshow logic ===
     let challengeIndex = 0;
     const challengeItems = document.querySelectorAll(".challenge-block");
-    const challengeDelay = 15000;
+    const challengeDelay = 6000;
 
     function showChallenge(index) {
         challengeItems.forEach((el, i) => {
@@ -1223,7 +1305,7 @@ def home() :
     st.divider()
 
     # javascript to allow autoscroll
-    display_time_seconds = 30  # Display time of each section
+    display_time_seconds = 20  # Display time of each section
 
     js_code = f"""
             <script>
@@ -1235,7 +1317,7 @@ def home() :
                 const specialAnchor2 = "warnings";
                 const specialAnchor3 = "calvin";
                 const specialAnchor4 = "percep-info";
-                const specialDelay = 60000;
+                const specialDelay = 50000;
 
                 function scrollToSection() {{
                     const targetId = sectionIds[currentSectionIndex];
@@ -1248,4 +1330,4 @@ def home() :
                     setTimeout(scrollToSection, nextDelay);
                 }}
                 setTimeout(scrollToSection, 500);</script>"""
-    html(f"""{js_code}""")
+    #html(f"""{js_code}""")
