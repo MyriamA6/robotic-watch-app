@@ -196,7 +196,7 @@ def home() :
     speed_mean = round(df_wheeled["Speed (m/s)"].mean(), 2)
     autonomy_mean = round(df_wheeled["Autonomy (hour)"].mean(), 2)
 
-    df_without_wheeled = df[df["Mobility Type"]!="bipedal"]
+    df_without_wheeled = df[df["Mobility Type"]!="wheeled"]
     weight_mean_without_wheeled = round(df_without_wheeled["Weight (kg)"].mean(), 2)
     height_mean_without_wheeled = round(df_without_wheeled["Height(cm)"].mean(), 2)
     payload_mean_without_wheeled = round(df_without_wheeled["Two Hand Payload (kg)"].mean(), 2)
@@ -206,32 +206,73 @@ def home() :
 
 
     st.subheader("   ", anchor="means")
-    st.title("What is the current market overview ?")
     st.subheader("   ")
-    st.subheader("Essential Figures to Remember")
+    st.subheader("   ")
+    st.subheader("   ")
+    st.subheader("   ")
+    # Titre principal
+    st.markdown("<h1 style='font-size: 90px;'>📊 What is the current market overview ?</h1>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.divider()
+    # Sous-titre
+    st.markdown("<h2 style='font-size: 70px;'>Essential Figures to Remember</h2>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    with st.container(border=True):
-        col1, col2, col3,col4 = st.columns(4)
-        col1.markdown("**Bipedal humanoid robots**")
-        col1.metric(label="Average weight in kg :scales:", value=weight_mean_without_wheeled)
-        col1.metric(label="Average height in cm :straight_ruler:", value=height_mean_without_wheeled)
-        col1.metric(label="Average payload in kg :mechanical_arm:", value=payload_mean_without_wheeled)
-        col2.markdown("   ")
-        col2.markdown("   ")
-        col2.write("   ")
-        col2.metric(label="Average total degrees of freedom :feather:", value=dof_mean_without_wheeled)
-        col2.metric(label="Average speed in m/s :running_man:", value=speed_mean_without_wheeled)
-        col2.metric(label="Average autonomy in hours :battery:", value=autonomy_mean_without_wheeled)
-        col3.markdown("**Wheeled humanoid robots**")
-        col3.metric(label="Average weight in kg :scales:", value=weight_mean)
-        col3.metric(label="Average height in cm :straight_ruler:", value=height_mean)
-        col3.metric(label="Average payload in kg :mechanical_arm:", value=payload_mean)
-        col4.markdown("   ")
-        col4.markdown("   ")
-        col4.write("   ")
-        col4.metric(label="Average total degrees of freedom :feather:", value=dof_mean)
-        col4.metric(label="Average speed in m/s :running_man:", value=speed_mean)
-        col4.metric(label="Average autonomy in hours :battery:", value=autonomy_mean)
+    col1, col2, col3, col4 = st.columns(4)
+
+    # --- BIPEDAL HUMANOID ROBOTS ---
+    col1.markdown("<p style='font-size: 60px; font-weight: bold;'>🤖 Bipedal humanoid robots</p>",
+                  unsafe_allow_html=True)
+    col1.markdown(
+        f"<div style='font-size:50px;'>⚖️ <b>Average weight:</b><br><span style='font-size:50px; color:#1f77b4;'>{weight_mean_without_wheeled} kg</span></div>",
+        unsafe_allow_html=True)
+    col1.markdown(
+        f"<div style='font-size:50px;'>📏 <b>Average height:</b><br><span style='font-size:50px; color:#1f77b4;'>{height_mean_without_wheeled} cm</span></div>",
+        unsafe_allow_html=True)
+    col1.markdown(
+        f"<div style='font-size:50px;'>🦾 <b>Average payload:</b><br><span style='font-size:50px; color:#1f77b4;'>{payload_mean_without_wheeled} kg</span></div>",
+        unsafe_allow_html=True)
+
+    col2.markdown("<br><br>", unsafe_allow_html=True)
+    col2.markdown(
+        f"<div style='font-size:50px;'>🧠 <b>Total DOF:</b><br><span style='font-size:50px; color:#1f77b4;'>{dof_mean_without_wheeled}</span></div>",
+        unsafe_allow_html=True)
+    col2.markdown(
+        f"<div style='font-size:50px;'>🏃 <b>Average speed:</b><br><span style='font-size:50px; color:#1f77b4;'>{speed_mean_without_wheeled} m/s</span></div>",
+        unsafe_allow_html=True)
+    col2.markdown(
+        f"<div style='font-size:50px;'>🔋 <b>Autonomy:</b><br><span style='font-size:50px; color:#1f77b4;'>{autonomy_mean_without_wheeled} h</span></div>",
+        unsafe_allow_html=True)
+
+    # --- WHEELED HUMANOID ROBOTS ---
+    col3.markdown("<p style='font-size: 60px; font-weight: bold;'>🛞 Wheeled humanoid robots</p>",
+                  unsafe_allow_html=True)
+    col3.markdown(
+        f"<div style='font-size:50px;'>⚖️ <b>Average weight:</b><br><span style='font-size:50px; color:#e15759;'>{weight_mean} kg</span></div>",
+        unsafe_allow_html=True)
+    col3.markdown(
+        f"<div style='font-size:50px;'>📏 <b>Average height:</b><br><span style='font-size:50px; color:#e15759;'>{height_mean} cm</span></div>",
+        unsafe_allow_html=True)
+    col3.markdown(
+        f"<div style='font-size:50px;'>🦾 <b>Average payload:</b><br><span style='font-size:50px; color:#e15759;'>{payload_mean} kg</span></div>",
+        unsafe_allow_html=True)
+
+    col4.markdown("<br><br>", unsafe_allow_html=True)
+    col4.markdown(
+        f"<div style='font-size:50px;'>🧠 <b>Total DOF:</b><br><span style='font-size:50px; color:#e15759;'>{dof_mean}</span></div>",
+        unsafe_allow_html=True)
+    col4.markdown(
+        f"<div style='font-size:50px;'>🏃 <b>Average speed:</b><br><span style='font-size:50px; color:#e15759;'>{speed_mean} m/s</span></div>",
+        unsafe_allow_html=True)
+    col4.markdown(
+        f"<div style='font-size:50px;'>🔋 <b>Autonomy:</b><br><span style='font-size:50px; color:#e15759;'>{autonomy_mean} h</span></div>",
+        unsafe_allow_html=True)
+
+    # Marge avant séparation
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.divider()
+    st.subheader("   ")
+    st.subheader("   ")
 
     st.subheader("   ")
     st.subheader("   ")
@@ -271,8 +312,10 @@ def home() :
     # Showing the repartition of creators of robots
     # The bigger the point, the more the corresponding country has recently invented robots
     st.subheader("   ",anchor="map-repartition")
-    st.subheader("Global Distribution Of Humanoid Robot Creators :earth_americas:")
-    st.markdown("**:blue[The bigger the point, the more a country has created humanoid robots.]**")
+    st.markdown("<h1 style='font-size:70px; font-weight:bold;'>Global Distribution Of Humanoid Robot Creators 🌎</h1>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='font-size:50px; color:#2986FF'><b>The bigger the point, the more a country has created humanoid robots.</b></div>",
+        unsafe_allow_html=True)
     with st.container(border=True):
         fig = px.scatter_map(country_counts,
                              lat="Latitude", lon="Longitude",
@@ -280,10 +323,10 @@ def home() :
                              hover_name="Country",
                              hover_data=["Robot Count"],
                              color="Country",
-                             size_max=50,
-                             zoom=1,
+                             size_max=200,
+                             zoom=3,
                              width=1000,
-                             height=550)
+                             height=1500)
 
         fig.update_layout(mapbox_style="carto-positron")
         fig.update_layout(
@@ -313,7 +356,7 @@ def home() :
 
     # This chart shows how companies building humanoid robots are distributed across different countries, based on their count.
     st.subheader("   ", anchor="company-repartition")
-    st.subheader("Humanoid Robots Main Producers Around the World :earth_americas:: ")
+    st.markdown("<h1 style='font-size:70px; font-weight:bold;'>🌎 Humanoid Robots Main Producers Around the World</h1>", unsafe_allow_html=True)
 
     p1, p2 = st.columns(2)
     with p1 :
@@ -324,9 +367,16 @@ def home() :
                 names="Country",
                 title="Worldwide robot creators distribution"
             )
-            fig_rep.update_layout(autosize=False,
+            fig_rep.update_layout(autosize=True,
                 width=500,
-                height=500)
+                title_font_size=50,
+                height=1500, legend=dict(font=dict(size=40)))
+
+            fig_rep.update_traces(
+                textinfo="percent+label",  # Affiche le pourcentage ET le label
+                textfont_size=40  # ← Taille du texte (ajuste selon tes besoins)
+            )
+
             st.plotly_chart(fig_rep, use_container_width=True)
 
     with p2 :
@@ -338,14 +388,20 @@ def home() :
                 names="Country",
                 title ="European robot creators repartition"
             )
-            fig_europe.update_layout(autosize=False,
+            fig_europe.update_layout(autosize=True,
                                      width=500,
-                                     height=500)
+                                     title_font_size=40,
+                                     legend=dict(font=dict(size=40)),
+                                     height=1500)
+            fig_europe.update_traces(
+                textinfo="percent+label",  # Affiche le pourcentage ET le label
+                textfont_size=40  # ← Taille du texte (ajuste selon tes besoins)
+            )
             st.plotly_chart(fig_europe, use_container_width=True)
 
 
     st.subheader("   ", anchor="physical-prop")
-    st.subheader("Physical properties based repartition of robots")
+    st.markdown("<h1 style='font-size:70px; font-weight:bold;'>Physical properties based repartition of robots</h1>", unsafe_allow_html=True)
 
     # Scatter plot of the robots based on their weight and height
     with st.container(border=True):
@@ -360,13 +416,15 @@ def home() :
             hover_name="Robot Name",
             hover_data=["Robot Name","Company","Country","Region","Year Unveiled", "Two Hand Payload (kg)"])
 
-        fig.update_layout(legend=dict(font=dict(size=10)))
-        fig.update_layout(autosize=False, width=1000, height=400)
-        st.write(
-            "This scatter plot shows the relationship between robot **height** and **weight**. "
-            "The **bubble size** indicates the **two-hand payload capacity** (in kg). "
-            "It helps identify trends between physical dimensions and lifting capabilities."
-        )
+        fig.update_layout(legend=dict(font=dict(size=40)))
+        fig.update_layout(autosize=False, width=1000, height=1500)
+        st.markdown("""
+        <p style="font-size:30px; line-height:1.4;">
+        This scatter plot shows the relationship between robot <b>height</b> and <b>weight</b>. 
+        The <b>bubble size</b> indicates the <b>two-hand payload capacity</b> (in kg). 
+        It helps identify trends between physical dimensions and lifting capabilities.
+        </p>
+        """, unsafe_allow_html=True)
 
         st.plotly_chart(fig)
 
@@ -379,48 +437,57 @@ def home() :
         top_df = top_df.sort_values(by=column, ascending=ascending).head(n)
 
         for _, row in top_df.iterrows():
-            if info_sup is not None and isinstance(row[info_sup],str):
-                st.markdown(
-                    f"- **{row['Robot Name']}** ({row['Company']}): {row[column]} {unit}. NB: " + row[info_sup])
+            name = f"<b style='font-size:50px;'>{row['Robot Name']}</b>"
+            company = f"<span style='font-size:40px;'>{row['Company']}</span>"
+            value = f"<span style='font-size:40px; color:#1f77b4;'><b>{row[column]}</b> {unit}</span>"
+
+            if info_sup is not None and isinstance(row[info_sup], str):
+                extra = f"<br><i style='font-size:40px;'>NB: {row[info_sup]}</i>"
             else:
-                st.markdown(f"- **{row['Robot Name']}** ({row['Company']}): {row[column]} {unit}")
+                extra = ""
+
+            st.markdown(
+                f"<div style='font-size:40px; margin-bottom: 20px; margin-top:20px; margin-left: 25px; margin-right: 25px;'>{name} - {company} : {value}{extra}</div>",
+                unsafe_allow_html=True
+            )
 
     st.subheader("   ", anchor="s2")
-    st.title("Who are the key players ?")
+    st.markdown("<h1 style='font-size:90px; font-weight:bold;'>Who are the key players ?</h1>", unsafe_allow_html=True)
     st.subheader("   ", anchor="top-robots-1")
-    st.subheader(":trophy: Top Robots by Category")
+    st.markdown("<h1 style='font-size:70px; font-weight:bold;'>🏆 Top Robots by Category</h1>", unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
 
     # Board of the best robots in each selected category
     with c1:
         with st.container(border=True):
-            st.subheader(":battery: Best Autonomy", anchor="b-auto")
+            st.markdown("<h3 style='font-size:40px;'>🔋 <b>Best Autonomy</b></h3>", unsafe_allow_html=True)
             show_top(df, "Autonomy (hour)", ascending=False, unit="hours")
 
     with c2:
         with st.container(border=True):
-            st.subheader(":package: Best Payload", anchor="b-payload")
+            st.markdown("<h3 style='font-size:40px;'>📦 <b>Best Payload</b></h3>", unsafe_allow_html=True)
             show_top(df, "Two Hand Payload (kg)", ascending=False, unit="kg")
 
     with c3:
         with st.container(border=True):
-            st.subheader(":money_with_wings: Cheapest Robots", anchor="b-money")
+            st.markdown("<h3 style='font-size:40px;'>💸 <b>Cheapest Robots</b></h3>", unsafe_allow_html=True)
             show_top(df, "Cost (USD)", ascending=True, unit="USD")
 
     c4, c5, c6 = st.columns(3)
+
     with c4:
         with st.container(border=True):
-            st.subheader(":woman-running: Fastest Robots", anchor="b-speed")
+            st.markdown("<h3 style='font-size:40px;'>🏃‍♀️ <b>Fastest Robots</b></h3>", unsafe_allow_html=True)
             show_top(df, "Speed (m/s)", ascending=False, unit="m/s", info_sup="Mobility Type")
 
     with c5:
         with st.container(border=True):
-            st.subheader(":scales: Lightest Robots", anchor="b-scales")
+            st.markdown("<h3 style='font-size:40px;'>⚖️ <b>Lightest Robots</b></h3>", unsafe_allow_html=True)
             show_top(df, "Weight (kg)", ascending=True, unit="kg")
 
     with c6:
         with st.container(border=True):
-            st.subheader(":wave: Higher DOF", anchor="b-dof")
+            st.markdown("<h3 style='font-size:40px;'>👋 <b>Higher DOF</b></h3>", unsafe_allow_html=True)
             show_top(df, "Total Degrees of Freedom (DOF)", ascending=False)
 
         # Creation of a pie chart of the main companies in the humanoid robots market
@@ -482,11 +549,22 @@ def home() :
     df_camera_count = pd.DataFrame(sensor_counts.items(), columns=["Camera Type", "Count"])
     fig_camera = px.pie(df_camera_count, values="Count", names="Camera Type",
                         title="Distribution of Vision Sensor Types")
-    fig_camera.update_layout(autosize=False, width=1000, height=600)
+    fig_camera.update_layout(autosize=False, width=1000, height=1500)
     st.plotly_chart(fig_camera, use_container_width=True)
 
+    st.subheader("  ")
+    st.subheader("  ")
+    st.subheader("  ")
+
     st.subheader("  ", anchor="percep-info")
-    st.subheader("Some information about perception sensors :")
+    st.markdown("""
+    <h2 style='
+        font-size:70px;
+        font-weight:bold;
+    '>
+        🔎 Some information about perception sensors :
+    </h2>
+    """, unsafe_allow_html=True)
     st.subheader("   ")
     st.subheader("   ")
     percep_sensors = [
@@ -588,13 +666,12 @@ def home() :
         <div class="percep-block" id="percep-{idx}"
     style="
         border-radius: 12px;
-        max-height: 600px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         background-color: #fff;
         padding: 1.5rem 2rem;
         margin: 1rem 0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 1.5rem;
+        font-size: 4rem;
         color: #222;
         cursor: default;
         display: flex;
@@ -604,12 +681,13 @@ def home() :
     "
 >
 <!-- Image -->
-    <div style="flex: 0 0 300px; max-width: 300px;">
+    <div style="flex: 0 0 900px; max-width: 900px;">
         <img src="{img_to_base64(img_show)}"
             style="
                 width: 100%;
-                max-height: 300px;
-                border-radius: 16px;
+                min-height :600px;
+                border-radius: 40px;
+                margin: 60px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 display: block;
                 object-fit: cover;
@@ -618,10 +696,10 @@ def home() :
     </div>
     <!-- Text Content -->
     <div style="flex: 1;">
-        <h3 style="margin-bottom: 0.75rem; font-weight: 600; font-size: 1.7rem; display: flex; align-items: center; gap: 0.5rem;">
+        <h3 style="margin:100px;margin-bottom: 0.75rem; font-weight: 700; font-size: 4rem; display: flex; align-items: center; gap: 0.5rem;">
             {c['title']}
         </h3>
-        <div style="color: #444; font-size: 1.5rem; line-height: 1.5;">
+        <div style="margin:100px;color: #444; font-size: 3rem; line-height: 1.5;">
             {c['content']}
         </div>
     </div>
@@ -658,7 +736,7 @@ def home() :
         """
 
     html(f"""{html_block_perception_info}{js_switch_percep}
-""",height=600)
+""",height=1500)
 
 
 
@@ -703,7 +781,11 @@ def home() :
 
             # Créer et afficher le graphique
             fig = px.pie(df_counts, values="Count", names="AI Technology used", title="Distribution of AI Technologies")
-            fig.update_layout(autosize=False, width=500, height=450)
+            fig.update_layout(autosize=False, width=500, height=1500)
+            fig.update_traces(
+                textinfo="percent+label",  # Affiche le pourcentage ET le label
+                textfont_size=40  # ← Taille du texte (ajuste selon tes besoins)
+            )
             st.plotly_chart(fig, use_container_width=True)
     # --- Colonne 4 : Capacité des robots à parler naturellement ---
     with col4:
@@ -716,20 +798,21 @@ def home() :
             df_talk = df.groupby("Can the robot converse naturally?").size().reset_index(name="Count")
 
             fig_talk = px.pie(df_talk, values="Count", names="Can the robot converse naturally?")
-            fig_talk.update_layout(autosize=False, width=500, height=450)
+            fig_talk.update_layout(autosize=False, width=500, height=1500)
+            fig_talk.update_traces(
+                textinfo="percent+label",  # Affiche le pourcentage ET le label
+                textfont_size=40  # ← Taille du texte (ajuste selon tes besoins)
+            )
             st.plotly_chart(fig_talk, use_container_width=True)
-
-    # Function that creates for each elem of "from_col" a new column with header "keyword"
-    def derive_spe_columns(df, from_col, keyword):
-        pattern = fr"\b{re.escape(keyword)}\b"
-        df[keyword] = df[from_col].str.contains(pattern, case=False, na=False).astype(int)
-        return df
 
     st.subheader("  ", anchor="safety")
     st.subheader("🛡️ Different Security Standards Implemented")
     with st.container(border=True):
 
-        st.subheader("Safety features used in the robots")
+        st.markdown(
+            "<h2 style='font-size:48px;'>Safety features used in the robots</h2>",
+            unsafe_allow_html=True
+        )
 
         # 1. Copier et nettoyer les données
         df_temp = df.copy()
@@ -755,32 +838,63 @@ def home() :
         # 6. Trier par pourcentage décroissant
         df_counts = df_counts.sort_values(by="percentage", ascending=False).reset_index(drop=True)
 
-        # 7. Afficher dans un tableau Streamlit
-        st.dataframe(df_counts.style.format({"percentage": "{:.1f}%"}))
+        # 8. Show 7 random safety features
+        random_rows = df_counts.sample(n=min(7, len(df_counts)))  # handles if df_counts has < 7 rows
+
+
+        for _, row in random_rows.iterrows():
+            st.markdown(
+                f"<p style='font-size:28px;'>• <b>{row['safety feature'].capitalize()}</b> "
+                f"({row['count']} occurrences, {row['percentage']:.1f}%)</p>",
+                unsafe_allow_html=True
+            )
 
     st.subheader("   ", anchor="s3")
-    st.title("What do the humanoid robots actually do?")
+    st.markdown(
+        "<h1 style='font-size:90px;'>What do the humanoid robots actually do?</h1>",
+        unsafe_allow_html=True
+    )
+
     st.subheader("  ")
     st.subheader("  ", anchor="img-hum-flow")
-    st.subheader("Understanding humanoid robots - ***:grey[Morgan Stanley]***")
+
+    st.markdown(
+        "<h1 style='font-size:70px;'>Understanding humanoid robots - <i>Morgan Stanley</i></h1>",
+        unsafe_allow_html=True
+    )
     st.image(os.path.join(general_directory, "..", "..", "data/images/robot_representation.png"))
 
     # Histogram of Primary Use-case of robots
     st.subheader("   ", anchor="primary-use-case")
-    st.subheader("Primary use case distribution for humanoid robots")
+    st.markdown(
+        "<h1 style='font-size:70px;'>Primary use case distribution for humanoid robots</h1>",
+        unsafe_allow_html=True
+    )
 
     with st.container(border=True):
         df["Primary Use-Case"] = df["Primary Use-Case"].fillna("Not specified").astype(str)
         frequency_primaryusecase = df["Primary Use-Case"].value_counts().reset_index(name="Count")
-        fig = px.pie(frequency_primaryusecase,
-                     names="Primary Use-Case",
-                     values="Count",
-                     )
 
-        fig.update_layout(autosize=False, width=1000, height=500, xaxis_title="Primary Use-Case",
-                          yaxis_title="Number of Robots")
+        fig = px.pie(
+            frequency_primaryusecase,
+            names="Primary Use-Case",
+            values="Count",
+        )
+
+        fig.update_traces(
+            textinfo="percent+label",  # Affiche pourcentages + labels
+            textfont_size=40  # Agrandit la taille du texte
+        )
+
+        fig.update_layout(
+            autosize=False,
+            width=1000,
+            height=1500,
+            xaxis_title="Primary Use-Case",
+            yaxis_title="Number of Robots"
+        )
+
         st.plotly_chart(fig, use_container_width=True)
-
 
     st.subheader("   ", anchor="robots-produced")
     st.subheader("   ")
@@ -799,42 +913,52 @@ def home() :
         return scaled_val
 
     # Retrieving robots currently produced
+
+    st.subheader("   ")
+    st.subheader("   ")
+    st.subheader("   ")
     df_prod=df[df["Status"]=="In Production"]
 
     st.markdown(f"""
-    <div style="
-        background-color: #f1f3f6;
-        border-left: 6px solid #4b8bbe;
-        padding: 20px 25px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-family: 'Segoe UI', sans-serif;
-    ">
+        <div style="
+            background-color: #f1f3f6;
+            border-left: 10px solid #4b8bbe;
+            padding: 40px 45px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-family: 'Segoe UI', sans-serif;
+        ">
 
-      <h3 style="margin-top: 0; color: #2c3e50;">🤖 Global Humanoid Robots in Production</h3>
+          <h2 style="margin-top: 0; color: #2c3e50; font-size: 70px;">🤖 Global Humanoid Robots in Production</h2>
 
-      <p style="font-size: 16px; color: #333;">
-        🔧 <strong>This section presents the robots that are currently produced around the world.</strong>
-      </p>
+          <p style="font-size: 48px; color: #333;">
+            🔧 <strong>This section presents the robots that are currently produced around the world.</strong>
+          </p>
 
-      <p style="font-size: 16px; color: #333;">
-        📊 Currently, there are 
-        <span style="font-weight: bold; color: #e74c3c;">{len(df_prod)}</span> 
-        humanoid robots listed as <strong>'In Production'</strong>.
-      </p>
+          <p style="font-size: 48px; color: #333;">
+            📊 Currently, there are 
+            <span style="font-weight: bold; color: #e74c3c;">{len(df_prod)}</span> 
+            humanoid robots listed as <strong>'In Production'</strong>.
+          </p>
 
-      <ul style="font-size: 15px; line-height: 1.6; color: #333; padding-left: 20px;">
-        <li>🧠 Key specifications: mobility, autonomy, sensors…</li>
-        <li>💵 Estimated cost (if available)</li>
-        <li>🏭 Production capacity per year</li>
-        <li>📈 Radar chart summarizing technical specs</li>
-      </ul>
+          <ul style="font-size: 38px; line-height: 1.8; color: #333; padding-left: 30px;">
+            <li>🧠 Key specifications: mobility, autonomy, sensors…</li>
+            <li>💵 Estimated cost (if available)</li>
+            <li>🏭 Production capacity per year</li>
+            <li>📈 Radar chart summarizing technical specs</li>
+          </ul>
 
-    </div>
+        </div>
     """, unsafe_allow_html=True)
+    st.subheader("   ")
+    st.subheader("   ")
+    st.subheader("   ")
+    st.subheader("   ")
 
     for idx, robot in df_prod.iterrows():
-        st.subheader("  ", anchor="robot-info" + str(idx))
+        st.markdown(
+            f"<h2 style='font-size: 48px;'>🤖 <b>{robot['Robot Name']}</b> - <i style='color: grey;'>{robot['Company']}</i></h2>",
+            unsafe_allow_html=True)
 
         # Compter les NaNs dans les catégories critiques
         categories = [
@@ -846,86 +970,102 @@ def home() :
             robot[col] is None or pd.isna(robot[col]) for col in categories
         )
 
-        # Seuil maximal de valeurs manquantes tolérées (ex. 3 sur 6)
         missing_threshold = 4
 
         if missing_count > missing_threshold:
-            # Trop de données manquantes → on affiche seulement le nom
-            st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*] - not enough information")
-        else:
-            # Fiche complète
-            st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*]")
+            st.markdown(
+                f"<h3 style='font-size: 32px; color: gray;'>Not enough information available for this robot.</h3>",
+                unsafe_allow_html=True)
+            continue
 
-            with st.container(border=True):
-                anchor_ids.append("robot-info" + str(idx))
-                subcol1, subcol2 = st.columns(2)
+        with st.container(border=True):
+            anchor_ids.append("robot-info" + str(idx))
+            subcol1, subcol2 = st.columns(2)
 
-                with subcol1:
-                    image_path = os.path.join(general_directory, "..",
-                                              "../data/images/" + robot['Robot Name'] + ".png")
-                    if os.path.exists(image_path):
-                        st.image(image_path, width=115)
-                    else:
-                        st.write("No image found")
+            with subcol1:
+                image_path = os.path.join(general_directory, "..", "../data/images/" + robot['Robot Name'] + ".png")
+                if os.path.exists(image_path):
+                    st.image(image_path, width=300)
+                else:
+                    st.markdown("<p style='font-size: 28px;'>🖼️ No image found</p>", unsafe_allow_html=True)
 
-                    st.write("**SPECS INFO** :wrench::")
-                    for col in categories:
-                        if robot[col] is not None and pd.notna(robot[col]):
-                            st.write(f"- **{col}:** {robot[col]}")
+                st.markdown("<h3 style='font-size: 36px; padding-top : 30px; padding-bottom : 30px;'>🔧 <b>SPECS INFO</b></h3>", unsafe_allow_html=True)
+                for col in categories:
+                    if robot[col] is not None and pd.notna(robot[col]):
+                        st.markdown(f"<div style='font-size: 28px; padding-bottom : 30px;'>• <b>{col}:</b> {robot[col]}</div>",
+                                    unsafe_allow_html=True)
 
-                with subcol2:
-                    cost_robot = robot['Cost (USD)']
-                    if cost_robot is not None and pd.notna(cost_robot):
-                        st.metric(label="Cost :heavy_dollar_sign: :", value=cost_robot)
-                    else:
-                        st.metric(label="Cost :heavy_dollar_sign: :", value="Not found")
+            with subcol2:
+                cost_robot = robot['Cost (USD)']
+                if cost_robot is not None and pd.notna(cost_robot):
+                    st.markdown(
+                        f"<div style='font-size: 32px; padding-bottom: 30px;'>💰 <b>Cost:</b> {cost_robot}</div>",
+                        unsafe_allow_html=True)
+                else:
+                    st.markdown("<div style='font-size: 32px; padding-bottom: 30px;'>💰 <b>Cost:</b> Not found</div>",
+                                unsafe_allow_html=True)
 
-                    prod_cap = robot['Production Capacity (units per year)']
-                    if prod_cap is not None and pd.notna(prod_cap):
-                        st.metric(label="Quantity :", value=prod_cap + " units/year")
-                    else:
-                        st.metric(label="Quantity :", value="Not found")
+                prod_cap = robot['Production Capacity (units per year)']
+                if prod_cap is not None and pd.notna(prod_cap):
+                    st.markdown(
+                        f"<div style='font-size: 32px; padding-bottom: 30px;'>🏭 <b>Quantity:</b> {prod_cap} units/year</div>",
+                        unsafe_allow_html=True)
+                else:
+                    st.markdown(
+                        "<div style='font-size: 32px; padding-bottom: 30px;'>🏭 <b>Quantity:</b> Not found</div>",
+                        unsafe_allow_html=True)
 
-                    # Radar chart
-                    values = []
-                    for cat in categories:
-                        try:
-                            val = float(robot.get(cat))
-                        except:
-                            val = np.nan
-                        values.append(min_max_scale(df, cat, val))
+                # Radar chart
+                values = []
+                for cat in categories:
+                    try:
+                        val = float(robot.get(cat))
+                    except:
+                        val = np.nan
+                    values.append(min_max_scale(df, cat, val))
 
-                    values += values[:1]
-                    categories += categories[:1]
+                values += values[:1]
+                radar_categories = categories + [categories[0]]  # Don't overwrite original list
 
-                    fig = go.Figure(
-                        data=[
-                            go.Scatterpolar(
-                                r=values,
-                                theta=categories,
-                                fill='toself',
-                                name=robot['Robot Name']
-                            )
-                        ],
-                        layout=go.Layout(
-                            polar=dict(
-                                radialaxis=dict(visible=True, range=[0, 1])
-                            ),
-                            showlegend=False,
-                            title="Radar Chart Technical Specs 🔧",
+                fig = go.Figure(
+                    data=[
+                        go.Scatterpolar(
+                            r=values,
+                            theta=radar_categories,
+                            fill='toself',
+                            name=robot['Robot Name']
                         )
+                    ],
+                    layout=go.Layout(
+                        polar=dict(
+                            radialaxis=dict(visible=True, range=[0, 1])
+                        ),
+                        showlegend=False,
+                        title=dict(
+                            text="Radar Chart Technical Specs 🔧",
+                            font=dict(size=40)
+                        ),
+                        font=dict(size=30),
+                        width=700,
+                        height=700
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        st.subheader("   ")
+        st.subheader("   ")
 
     st.divider()
 
     anchor_ids.extend(["s4","country-cost-comp","tot-fundraise","market-description","val-share","warnings","poll"])
 
     st.subheader("    ")
-    st.title("What is the current economic situation?", anchor="s4")
+    st.subheader("    ", anchor="s4")
+    st.markdown("<h1 style='font-size: 90px;'>What is the current economic situation?</h1>",
+                unsafe_allow_html=True)
     st.subheader("    ")
     st.subheader("   ", anchor="country-cost-comp")
-    st.subheader(":dollar: Average Robot Cost by Country :")
+    st.markdown("<h1 style='font-size: 70px;'>Average Robot Cost by Country </h1>",
+                unsafe_allow_html=True)
 
     country_robot_cost_europe = df[df["Country"].isin(europe)]["Cost (USD)"].mean()
 
@@ -947,18 +1087,37 @@ def home() :
         labels={"Country": "Country", "Average Cost (USD)": "Average Cost (USD)"},
         color="Country",
         color_discrete_sequence=px.colors.qualitative.Pastel,
-        text=df_country_robot_cost_exp_europe["Average Cost (USD)"].round(2)  # Add rounded cost as text
+        text=df_country_robot_cost_exp_europe["Average Cost (USD)"].round(2),
+        height = 1500# Add rounded cost as text
     )
 
-    fig_robot_cost.update_traces(textposition='outside')  # Puts text above the bars
-    fig_robot_cost.update_layout(xaxis_tickangle=-45)
+    fig_robot_cost.update_traces(textposition='outside',
+                                textfont=dict(size=40)
+                                 )  # Puts text above the bars
+    fig_robot_cost.update_layout(xaxis_tickangle=-45,
+                                xaxis = dict(
+                                    title_font=dict(size=40),  # taille du label de l'axe X
+                                    tickfont=dict(size=30)  # taille des ticks (valeurs) de l'axe X
+                                ),
+                                yaxis = dict(
+                                    title_font=dict(size=40),  # taille du label de l'axe Y
+                                    tickfont=dict(size=30)  # taille des ticks (valeurs) de l'axe Y
+                                ),
+                                 legend = dict(font=dict(size=40),
+                                    title = dict(
+                                        text="Country",
+                                        font=dict(size=40)  # taille du titre de la légende
+                                    ),
+                                               )
+                                 )
     st.plotly_chart(fig_robot_cost, use_container_width=True)
     st.divider()
 
 
 
     st.subheader("   ", anchor="tot-fundraise")
-    st.subheader("📊 Total Fundraising in Humanoid Robotics (2018+)")
+    st.markdown("<h1 style='font-size: 70px;'>📊 Total Fundraising in Humanoid Robotics (2018+)</h1>",
+                unsafe_allow_html=True)
     df_humanoid_market = pd.read_csv(os.path.join(general_directory,"../../data/humanoid_company_market_analysis.csv"), delimiter=";", index_col="Company")
     df_humanoid_market = df_humanoid_market.T
 
@@ -987,10 +1146,21 @@ def home() :
         x="Year",
         y="Total Fundraising",
         labels={"Total Fundraising": "Total Fundraising ($USD)"},
-        text=df_total["Total Fundraising"].round(2)  # Add rounded cost as text
+        text=df_total["Total Fundraising"].round(2),  # Add rounded cost as text
+        height=1500
     )
 
-    fig.update_layout(
+    fig.update_traces(textfont=dict(size=40)
+                                 )
+
+    fig.update_layout(xaxis = dict(
+                                    title_font=dict(size=40),  # taille du label de l'axe X
+                                    tickfont=dict(size=30)  # taille des ticks (valeurs) de l'axe X
+                                ),
+                                yaxis = dict(
+                                    title_font=dict(size=40),  # taille du label de l'axe Y
+                                    tickfont=dict(size=30)  # taille des ticks (valeurs) de l'axe Y
+                                ),
         annotations=[
             dict(
                 x=2025,
@@ -1000,7 +1170,7 @@ def home() :
                 arrowhead=1,
                 ax=0,
                 ay=-40,
-                font=dict(color="red", size=12)
+                font=dict(color="red", size=30)
             ),
             dict(
                 x=2024,
@@ -1014,7 +1184,7 @@ def home() :
                 text="AI included in robotics",
                 showarrow=True,
                 arrowhead=3,
-                font=dict(color="red", size=12),
+                font=dict(color="red", size=30),
                 arrowcolor="black"
             )
         ]
@@ -1025,7 +1195,8 @@ def home() :
 
 
     st.subheader(" ", anchor="market-description")
-    st.subheader("Companies' Market Valuations in Humanoid Robotics (2025)")
+    st.markdown("<h1 style='font-size: 70px;'>Companies' Market Valuations in Humanoid Robotics (2025)</h1>",
+                unsafe_allow_html=True)
 
     side1, side2 =st.columns(2)
     with st.container(border=True):
@@ -1040,13 +1211,23 @@ def home() :
         )
 
         fig_market.update_layout(
-            autosize=False,
-            height=500,
+            xaxis=dict(
+                title_font=dict(size=40),  # taille du label de l'axe X
+                tickfont=dict(size=30)  # taille des ticks (valeurs) de l'axe X
+            ),
+            yaxis=dict(
+                title_font=dict(size=40),  # taille du label de l'axe Y
+                tickfont=dict(size=30)  # taille des ticks (valeurs) de l'axe Y
+            ),
+            height=1500,
             xaxis_title="Company",
             yaxis_title="Cumulative Fundraising (USD)",
-            uniformtext_minsize=8,
             uniformtext_mode='hide'
         )
+
+        fig_market.update_traces(textfont=dict(size=40)
+                          )
+
 
         st.plotly_chart(fig_market, use_container_width=True)
 
@@ -1071,7 +1252,7 @@ def home() :
         )
         fig_valuation.update_layout(
             autosize=False,
-            height=450,
+            height=1500,
             annotations=[dict(
                 text=f"""${total_val:,.0f}""",
                 x=0.5,
