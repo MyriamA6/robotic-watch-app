@@ -16,7 +16,7 @@ def home() :
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
     dataset_file=os.path.join(general_directory,"..","..","data/humanoid_data_cleaned2207.csv")
-    df = pd.read_csv(dataset_file)
+    df = pd.read_csv(dataset_file,delimiter=',')
 
     df = df.replace(
         to_replace=r'(?i)^\s*(n/d|n\.d|//n|n/a|na|nan|none|null)\s*$',
@@ -27,6 +27,7 @@ def home() :
     numerical_columns = df[["Cost (USD)", "Weight (kg)", "Height(cm)", "Speed (m/s)", "Autonomy (hour)", "Total Degrees of Freedom (DOF)",
          "Body Degrees of Freedom (DOF)", "Hands Degrees of Freedom (DOF)", "Two Hand Payload (kg)"]]
 
+    print(str(df["Year Unveiled"]))
     # Converting the right columns to numeric
     for col in numerical_columns.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -196,7 +197,7 @@ def home() :
     speed_mean = round(df_wheeled["Speed (m/s)"].mean(), 2)
     autonomy_mean = round(df_wheeled["Autonomy (hour)"].mean(), 2)
 
-    df_without_wheeled = df[df["Mobility Type"]!="bipedal"]
+    df_without_wheeled = df[df["Mobility Type"]=="bipedal"]
     weight_mean_without_wheeled = round(df_without_wheeled["Weight (kg)"].mean(), 2)
     height_mean_without_wheeled = round(df_without_wheeled["Height(cm)"].mean(), 2)
     payload_mean_without_wheeled = round(df_without_wheeled["Two Hand Payload (kg)"].mean(), 2)
@@ -557,6 +558,7 @@ def home() :
                   It creates curved, distorted images, which helps see more of a scene at once.<br>
                 </p>
                 """,
+            "source": "unfound",
             "img": "fisheye_lens.png"
 
         },
@@ -568,6 +570,7 @@ def home() :
                   It combines images from multiple cameras to show a wide, 360° view from above.<br>
                 </p>
                 """,
+            "source": "unfound",
             "img": "eagle_eye.png"
 
         }
@@ -624,6 +627,10 @@ def home() :
         <div style="color: #444; font-size: 1.5rem; line-height: 1.5;">
             {c['content']}
         </div>
+        <div style="color: grey; font-size: 1rem; line-height: 1.5;">
+            Source : {c['source']}
+        </div>
+        
     </div>
 </div>
 
@@ -1305,7 +1312,7 @@ def home() :
     st.divider()
 
     # javascript to allow autoscroll
-    display_time_seconds = 20  # Display time of each section
+    display_time_seconds = 2  # Display time of each section
 
     js_code = f"""
             <script>
