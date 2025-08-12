@@ -3,7 +3,24 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 def website_retrieval():
-    # webscraping to retrieve the news solely from the website "https://www.humanoidsdaily.com/"
+    """
+        Scrapes the latest news articles from the website "https://www.humanoidsdaily.com/".
+
+        This function performs an HTTP GET request to the target site, parses the HTML content
+        with BeautifulSoup, and extracts a list of news articles including their title, link,
+        publication date, main image URL, and a short summary.
+
+        The extracted data is returned as a dictionary where each key is a sequential integer
+        identifier and the value is another dictionary containing the fields:
+            - "title": The headline of the news article.
+            - "link": Full URL to the article.
+            - "date": Publication date as displayed on the website.
+            - "image": URL of the associated main image (or None if unavailable).
+            - "summary": First sentence of the article summary.
+
+        Returns:
+            dict: A dictionary of news articles with their relevant metadata.
+    """
     init_url = "https://www.humanoidsdaily.com/"
     response = requests.get(init_url)
     soup = BeautifulSoup(response.text, 'html.parser')

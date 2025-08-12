@@ -1,11 +1,6 @@
 [
-    {"name": "ROBOTERA L7", "company": "Robot Era"},
-    {"name": "Optimus", "company": "Tesla"},
-    {"name": "Ameca", "company": "Engineered Arts"},
-    {"name": "Walker S1", "company": "UBTECH"},
-    {"name": "Robo-C2", "company": "Promobot"},
-    {"name": "MenteeBot V3.0", "company": "Unknown"},
-    {"name": "4NE1", "company": "NEURA Robotics"},
-    {"name": "Figure", "company": "Figure AI"},
-    {"name": "Protoclone", "company": "Clone Robotics"}
+  {
+    "name": "Calvin-40",
+    "company": "Wandercraft"
+  }
 ]

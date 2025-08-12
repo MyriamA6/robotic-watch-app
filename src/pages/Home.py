@@ -13,10 +13,28 @@ from io import BytesIO
 import qrcode
 
 def home() :
+
+    """
+        Main page of the Streamlit app showing insights on humanoid robots.
+
+        This function:
+        - Loads and cleans the humanoid robot dataset.
+        - Displays key statistics and averages for humanoid robots.
+        - Shows latest news retrieved from an external source.
+        - Provides a disclaimer about the data sources and reliability.
+        - Visualizes geographic distribution and other relevant metrics of humanoid robots.
+        - Displays graphics of financial data of some of the most important companies in the database
+
+        The UI is built with Streamlit components and uses Plotly for charts.
+    """
+
+    # Loading the general path to access the wanted files
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
     dataset_file=os.path.join(general_directory,"..","..","data/humanoid_data_cleaned2207.csv")
-    df = pd.read_csv(dataset_file,delimiter=',')
+
+    # Cleaning the database of robots before use
+    df = pd.read_csv(dataset_file)
 
     df = df.replace(
         to_replace=r'(?i)^\s*(n/d|n\.d|//n|n/a|na|nan|none|null)\s*$',
@@ -27,11 +45,9 @@ def home() :
     numerical_columns = df[["Cost (USD)", "Weight (kg)", "Height(cm)", "Speed (m/s)", "Autonomy (hour)", "Total Degrees of Freedom (DOF)",
          "Body Degrees of Freedom (DOF)", "Hands Degrees of Freedom (DOF)", "Two Hand Payload (kg)"]]
 
-    print(str(df["Year Unveiled"]))
     # Converting the right columns to numeric
     for col in numerical_columns.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-    print(df.columns)
     df = df.dropna(subset="Year Unveiled")
     df["Year Unveiled"] = df["Year Unveiled"].astype(int)
     df["Country"]=df["Country"].str.strip()
@@ -56,6 +72,7 @@ def home() :
     )
 
     # Description of the content of the webpage
+
     st.subheader("   ",anchor="title")
     st.title(":bar_chart: Humanoid Insights")
     st.divider()
@@ -73,6 +90,7 @@ def home() :
     """, unsafe_allow_html=True)
 
     st.divider()
+
     # Disclaimer Section
 
     st.subheader("   ",anchor="Disclaimer")
@@ -106,6 +124,9 @@ def home() :
     """, unsafe_allow_html=True)
 
 
+    # News section:
+    # - Fetches latest humanoid robotics news via web scraping
+    # - Adds JS slideshow to cycle through news items automatically
     st.subheader("   ", anchor="news")
 
     st.subheader(":newspaper: Latest in Humanoid Robotics   -   ***:grey[humanoidsdaily]***")
@@ -179,16 +200,19 @@ def home() :
             </script>
             """
 
-
-
+    # Allowing the use of html in th streamlit app
     html(f"""<div>{html_blocks}</div>{js_code_news}
              """, height=700)
 
+    # Calvin display section
     st.subheader("   ", "calvin")
     st.video("https://www.youtube.com/watch?v=YddS-aI097Q&t=4s", autoplay=True, loop=True)
 
 
-    # Mean of several data
+    # Calculate and display average specifications for humanoid robots
+    # separated by mobility type: wheeled vs. bipedal.
+    # For each group, compute means of weight, height, payload,
+    # degrees of freedom, speed, and autonomy.
     df_wheeled = df[df["Mobility Type"]=="wheeled"]
     weight_mean = round(df_wheeled["Weight (kg)"].mean(), 2)
     height_mean = round(df_wheeled["Height(cm)"].mean(), 2)
@@ -240,8 +264,9 @@ def home() :
     st.subheader("   ")
     st.divider()
 
+    # Section dedicated to showing the number of robots unveiled by country
+    # European country are grouped without russia
 
-    # European country without russia
     europe = [
         "Albania", "Andorra", "Armenia", "Austria", "Azerbaijan",
         "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria",
@@ -269,11 +294,10 @@ def home() :
     country_counts = country_counts[~country_counts["Country"].isin(europe)]
 
     country_counts.loc[len(country_counts)] = ["Europe", 49, 14, sum(europe_counts.values())]
-    # Showing the repartition of creators of robots
-    # The bigger the point, the more the corresponding country has recently invented robots
+
     st.subheader("   ",anchor="map-repartition")
-    st.subheader("Global Distribution Of Humanoid Robot Creators :earth_americas:")
-    st.markdown("**:blue[The bigger the point, the more a country has created humanoid robots.]**")
+    st.subheader("Global Distribution of Humanoid Robots Revealed by Country :earth_americas:")
+    st.markdown("**:blue[The bigger the point, the more a country has revealed humanoid robots.]**")
     with st.container(border=True):
         fig = px.scatter_map(country_counts,
                              lat="Latitude", lon="Longitude",
@@ -349,6 +373,7 @@ def home() :
     st.subheader("Physical properties based repartition of robots")
 
     # Scatter plot of the robots based on their weight and height
+    # The bigger the point, the heavier a robot can lift
     with st.container(border=True):
         data_interactive=df.copy()
         data_interactive = data_interactive.dropna(subset=["Weight (kg)", "Height(cm)", "Two Hand Payload (kg)"])
@@ -374,6 +399,34 @@ def home() :
     # Function to show the n-best robots in a given category
     # The order of sort is also chosen by the dev
     def show_top(df, column, ascending=False, n=3, unit="", info_sup=None):
+        """
+            Display the top n robots based on a specified category.
+            Parameters:
+            -----------
+            df : pandas.DataFrame
+                DataFrame containing the robot data.
+            column : str
+                The name of the column to sort by (e.g., 'Weight (kg)', 'Speed (m/s)', etc.).
+            ascending : bool, optional (default=False)
+                Sort order. False for descending (top values first), True for ascending.
+            n : int, optional (default=3)
+                Number of top robots to display.
+            unit : str, optional (default="")
+                Unit string to append after the value (e.g., 'kg', 'm/s').
+            info_sup : str or None, optional (default=None)
+                Name of an additional column whose content will be shown as a note after the metric, if present.
+
+            Behavior:
+            ---------
+            - Converts the specified column to numeric, ignoring non-convertible values.
+            - Sorts the DataFrame based on the column and order specified.
+            - Displays the top n rows as a markdown list with robot name, company, value with unit, and optional extra info.
+
+            Example usage:
+            --------------
+            show_top(df, column="Weight (kg)", ascending=True, n=5, unit="kg", info_sup="Notes")
+        """
+
         top_df = df.copy()
         top_df[column] = pd.to_numeric(top_df[column], errors="coerce")
         top_df = top_df.dropna(subset=[column])
@@ -424,9 +477,7 @@ def home() :
             st.subheader(":wave: Higher DOF", anchor="b-dof")
             show_top(df, "Total Degrees of Freedom (DOF)", ascending=False)
 
-        # Creation of a pie chart of the main companies in the humanoid robots market
-        # On all companies, wheeled robots included
-
+    # This section displays the top 5 companies that unveiled the higher number of robots
     distribution_companies = df.groupby("Company").size().reset_index(name="Count")
 
     distribution_companies = distribution_companies[distribution_companies["Count"] > 1].sort_values(by='Count',
@@ -434,7 +485,7 @@ def home() :
 
     st.subheader("   ", anchor="humanoid-creators")
     st.subheader("Main humanoid robots creators :")
-    names = distribution_companies["Company"].unique()
+    names = distribution_companies["Company"].unique()[:5]
     cpt=0
     for name in names:
         cpt+=1
@@ -452,6 +503,13 @@ def home() :
             break
 
     st.divider()
+
+    # This section analyzes the distribution of perception sensor types used by companies.
+    # It processes the 'Vision Sensors type' column, replacing missing values with "Not specified".
+    # Then, it loads a mapping CSV file containing sensor groupings and related keywords to standardize sensor types.
+    # The classify_sensor function matches sensor names to their groups based on keywords.
+    # The script compiles all sensor entries, splits them, classifies them, counts occurrences,
+    # and finally plots a pie chart showing the distribution of vision sensor types across the dataset.
 
     st.subheader("    ", anchor="camera-type")
     st.subheader("Repartition of perception sensors type used by companies")
@@ -486,6 +544,7 @@ def home() :
     fig_camera.update_layout(autosize=False, width=1000, height=600)
     st.plotly_chart(fig_camera, use_container_width=True)
 
+    # Section that gives more information on the different perception sensors generally used in robots
     st.subheader("  ", anchor="percep-info")
     st.subheader("Some information about perception sensors :")
     st.subheader("   ")
@@ -581,58 +640,58 @@ def home() :
             b64 = base64.b64encode(img_file.read()).decode()
         return f"data:image/png;base64,{b64}"
 
+    # Formatting in html and then adding javascript for dynamism
     html_block_perception_info = ""
     for idx, c in enumerate(percep_sensors):
         img_show=os.path.join(general_directory,"..","..","data/images",c['img'])
         if not os.path.exists(img_show):
-            print("here")
             img_show=os.path.join(general_directory,"..","..","data/images","not_found.png")
         html_block_perception_info += f"""
         <div class="percep-block" id="percep-{idx}"
-    style="
-        border-radius: 12px;
-        max-height: 600px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
-        padding: 1.5rem 2rem;
-        margin: 1rem 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 1.5rem;
-        color: #222;
-        cursor: default;
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-        justify-content: space-between;
-    "
->
-<!-- Image -->
-    <div style="flex: 0 0 300px; max-width: 300px;">
-        <img src="{img_to_base64(img_show)}"
             style="
-                width: 100%;
-                max-height: 300px;
-                border-radius: 16px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                display: block;
-                object-fit: cover;
+                border-radius: 12px;
+                max-height: 600px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                background-color: #fff;
+                padding: 1.5rem 2rem;
+                margin: 1rem 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 1.5rem;
+                color: #222;
+                cursor: default;
+                display: flex;
+                gap: 2rem;
+                align-items: center;
+                justify-content: space-between;
             "
-        />
-    </div>
-    <!-- Text Content -->
-    <div style="flex: 1;">
-        <h3 style="margin-bottom: 0.75rem; font-weight: 600; font-size: 1.7rem; display: flex; align-items: center; gap: 0.5rem;">
-            {c['title']}
-        </h3>
-        <div style="color: #444; font-size: 1.5rem; line-height: 1.5;">
-            {c['content']}
-        </div>
-        <div style="color: grey; font-size: 1rem; line-height: 1.5;">
-            Source : {c['source']}
-        </div>
-        
-    </div>
-</div>
+            >
+            <!-- Image -->
+                <div style="flex: 0 0 300px; max-width: 300px;">
+                    <img src="{img_to_base64(img_show)}"
+                        style="
+                            width: 100%;
+                            max-height: 300px;
+                            border-radius: 16px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                            display: block;
+                            object-fit: cover;
+                        "
+                    />
+                </div>
+                <!-- Text Content -->
+                <div style="flex: 1;">
+                    <h3 style="margin-bottom: 0.75rem; font-weight: 600; font-size: 1.7rem; display: flex; align-items: center; gap: 0.5rem;">
+                        {c['title']}
+                    </h3>
+                    <div style="color: #444; font-size: 1.5rem; line-height: 1.5;">
+                        {c['content']}
+                    </div>
+                    <div style="color: grey; font-size: 1rem; line-height: 1.5;">
+                        Source : {c['source']}
+                    </div>
+                    
+                </div>
+            </div>
 
     """
 
@@ -664,56 +723,49 @@ def home() :
         </script>
         """
 
-    html(f"""{html_block_perception_info}{js_switch_percep}
-""",height=600)
+    html(f"""{html_block_perception_info}{js_switch_percep}""",height=600)
 
 
-
+    # This section shows the distribution of AI technology used in humanoid robots (reinforcement learning, deep learning, ...
     st.subheader("  ", anchor="ai-tech")
     st.subheader(":computer: AI Analysis :")
     col3,col4=st.columns(2)
-    # --- Colonne 3 : Répartition des technologies d'IA utilisées ---
     with col3:
         with st.container(border=True):
             st.subheader("Repartition of AI technologies used in the robots :")
 
+            # Cleaning the specific column
             df_temp = df.copy()
             df_temp["AI Technology used"].fillna("Not specified", inplace=True)
 
-            # Joindre toutes les valeurs et normaliser les séparateurs
             value_list = df_temp["AI Technology used"].tolist()
             all_values = "; ".join(value_list).replace("\n", " ").replace("\r", " ")
 
-            # Normaliser les séparateurs multiples : and, &, /, ,
             for sep in [" and ", " & ", "/", ","]:
                 all_values = all_values.replace(sep, ";")
 
-            # Séparer, nettoyer
             cleaned_values = [s.strip() for s in all_values.split(";") if s.strip()]
 
-            # Compter les occurrences
             value_counts = Counter(cleaned_values)
             df_counts = pd.DataFrame(value_counts.items(), columns=["AI Technology used", "Count"])
 
-            # Calcul des pourcentages
             total = df_counts["Count"].sum()
             df_counts["Percentage"] = df_counts["Count"] / total * 100
 
-            # Regrouper les < 3% en "Others"
+            # We ignore AI technologies that are negligible
             df_counts["AI Technology used"] = df_counts.apply(
                 lambda row: row["AI Technology used"] if row["Percentage"] >= 3 else "Others",
                 axis=1
             )
 
-            # Regrouper à nouveau après remplacement
             df_counts = df_counts.groupby("AI Technology used", as_index=False)["Count"].sum()
 
-            # Créer et afficher le graphique
             fig = px.pie(df_counts, values="Count", names="AI Technology used", title="Distribution of AI Technologies")
             fig.update_layout(autosize=False, width=500, height=450)
             st.plotly_chart(fig, use_container_width=True)
-    # --- Colonne 4 : Capacité des robots à parler naturellement ---
+
     with col4:
+        # Distribution of robots according to their ability to speak naturally or not
         with st.container(border=True):
             st.subheader(
                 "How many robots actually are able to converse naturally? :speaking_head_in_silhouette:")
@@ -732,47 +784,43 @@ def home() :
         df[keyword] = df[from_col].str.contains(pattern, case=False, na=False).astype(int)
         return df
 
+    # Distribution of the safety features used in the humanoid robots
     st.subheader("  ", anchor="safety")
     st.subheader("🛡️ Different Security Standards Implemented")
     with st.container(border=True):
 
         st.subheader("Safety features used in the robots")
 
-        # 1. Copier et nettoyer les données
         df_temp = df.copy()
         df_temp["Safety Features"].fillna("not specified", inplace=True)
 
-        # 2. Concaténer et normaliser les séparateurs
         value_list = df_temp["Safety Features"].tolist()
         all_values = "; ".join(value_list).replace("\n", " ").replace("\r", " ")
         for sep in [" and ", " & ", "/", ","]:
             all_values = all_values.replace(sep, ";")
 
-        # 3. Séparer, nettoyer, mettre en minuscule
         cleaned_values = [s.strip().lower() for s in all_values.split(";") if s.strip()]
 
-        # 4. Compter les occurrences
         value_counts = Counter(cleaned_values)
         df_counts = pd.DataFrame(value_counts.items(), columns=["safety feature", "count"])
 
-        # 5. Calculer les pourcentages
         total = df_counts["count"].sum()
         df_counts["percentage"] = df_counts["count"] / total * 100
 
-        # 6. Trier par pourcentage décroissant
         df_counts = df_counts.sort_values(by="percentage", ascending=False).reset_index(drop=True)
 
-        # 7. Afficher dans un tableau Streamlit
         st.dataframe(df_counts.style.format({"percentage": "{:.1f}%"}))
 
     st.subheader("   ", anchor="s3")
+
     st.title("What do the humanoid robots actually do?")
     st.subheader("  ")
+
     st.subheader("  ", anchor="img-hum-flow")
     st.subheader("Understanding humanoid robots - ***:grey[Morgan Stanley]***")
     st.image(os.path.join(general_directory, "..", "..", "data/images/robot_representation.png"))
 
-    # Histogram of Primary Use-case of robots
+    # Pie chart of Primary Use-case of robots
     st.subheader("   ", anchor="primary-use-case")
     st.subheader("Primary use case distribution for humanoid robots")
 
@@ -843,7 +891,7 @@ def home() :
     for idx, robot in df_prod.iterrows():
         st.subheader("  ", anchor="robot-info" + str(idx))
 
-        # Compter les NaNs dans les catégories critiques
+        # Ignoring robots with too many NaN values
         categories = [
             "Height(cm)", "Weight (kg)", "Total Degrees of Freedom (DOF)",
             "Two Hand Payload (kg)", "Speed (m/s)", "Autonomy (hour)"
@@ -853,14 +901,11 @@ def home() :
             robot[col] is None or pd.isna(robot[col]) for col in categories
         )
 
-        # Seuil maximal de valeurs manquantes tolérées (ex. 3 sur 6)
         missing_threshold = 4
 
         if missing_count > missing_threshold:
-            # Trop de données manquantes → on affiche seulement le nom
             st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*] - not enough information")
         else:
-            # Fiche complète
             st.subheader(f"**{robot['Robot Name']}** - :grey[*{robot['Company']}*]")
 
             with st.container(border=True):
@@ -932,6 +977,8 @@ def home() :
     st.title("What is the current economic situation?", anchor="s4")
     st.subheader("    ")
     st.subheader("   ", anchor="country-cost-comp")
+
+    # Bar plot of the price of humanoid robots according to the region they are from
     st.subheader(":dollar: Average Robot Cost by Country :")
 
     country_robot_cost_europe = df[df["Country"].isin(europe)]["Cost (USD)"].mean()
@@ -961,7 +1008,6 @@ def home() :
     fig_robot_cost.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_robot_cost, use_container_width=True)
     st.divider()
-
 
 
     st.subheader("   ", anchor="tot-fundraise")
@@ -1311,6 +1357,32 @@ def home() :
 
     st.divider()
 
+    sheet_url = "https://docs.google.com/document/d/1PSAj3k5GzgEFlDZVzpRXTalovhYxtbegK4NRkHYIS2M/edit?usp=sharing"
+
+    st.subheader("   ", anchor="sources")
+    st.subheader("   ")
+    st.subheader("📄 Sources Used")
+
+    anchor_ids.append("sources")
+    # Generate the QR code
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
+    qr.add_data(sheet_url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    byte_im = buf.getvalue()
+
+    col1, col2, col3 = st.columns(3)
+    with col2 :
+        # Display the QR code
+        st.image(byte_im, width=400)
+
+    st.subheader("   ")
+    st.subheader("   ")
+
+
     # javascript to allow autoscroll
     display_time_seconds = 2  # Display time of each section
 
@@ -1338,3 +1410,4 @@ def home() :
                 }}
                 setTimeout(scrollToSection, 500);</script>"""
     #html(f"""{js_code}""")
+
