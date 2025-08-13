@@ -1,0 +1,10 @@
+credentials:
+  usernames:
+    root:
+      email: root@gmail.com
+      name: root
+      password: root
+cookie:
+  expiry_days: 8000
+  key: some_signature_key
+  name: some_cookie_name
