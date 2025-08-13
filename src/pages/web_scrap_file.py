@@ -196,13 +196,6 @@ def webscrap() :
     os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
 
     search_tavily = TavilySearch()
-    os.environ["SERPER_API_KEY"] = os.getenv("SERPER_API_KEY")
-
-    search = Tool(
-        name="Search",
-        func=GoogleSerperAPIWrapper().run,
-        description="Use this tool to search the web for information about robots."
-    )
 
     # Creation of a first agent in charge of finding the url of a humanoid robot on a given website
     llm_retrieves = ChatOpenAI(
@@ -580,7 +573,7 @@ def webscrap() :
                     )
 
                     finding_robots_prompt = """
-                        You are a detective specialized in finding all the latest humanoid robots unveiled on the following websites:
+                        You are a detective specialized in finding all the latest humanoid robots unveiled in 2025 on the following websites:
                         - www.aparobot.com
                         - humanoidroboticstechnology.com
                         - www.linkedin.com
@@ -594,7 +587,7 @@ def webscrap() :
                         Use the available tools to search and extract the most recent humanoid robots
                         """
 
-                    find_robots_agent = create_react_agent(llm_find_robots, [search, fetch_full_webpage],prompt=finding_robots_prompt)
+                    find_robots_agent = create_react_agent(llm_find_robots, [search_tavily, fetch_full_webpage],prompt=finding_robots_prompt)
 
                     latest_robots = find_robots_agent.invoke({"messages": [("human", f"""
                         Using the available tools as many times as you want, find the most recent **humanoid** robots (bipedal or wheeled ONLY — absolutely NO quadrupedal or animal-like robots) unveiled on the given websites.
@@ -755,6 +748,7 @@ def webscrap() :
 
                     confirmed_match = None
                     st.session_state.confirmation_clicked = False
+                    st.session_state.index += 1
 
                     # If matches found, ask user to confirm if any are the same robot
                     if matches:
@@ -769,11 +763,42 @@ def webscrap() :
                                 if is_same == "Yes, same robot":
                                     confirmed_match = (i_match, row)
 
-                    if st.button("Confirm choice", key="confirmation"+str(current_index)):
-                        st.session_state.confirmation_clicked = True
+                        if st.button("Confirm choice", key="confirmation"+str(current_index)):
+                            st.session_state.confirmation_clicked = True
+                    else:
+                        # No confirmed matches: add robot safely after confirmation
+                        st.success("✅ No confirmed match. The robot will be safely added ")
+                        initial_state = {
+                            "robot": tp_robot,
+                            "completion_rate": completion_rate(tp_robot),
+                            "remaining_fields": get_empty_fields(tp_robot),
+                            "prompt": "",
+                            "url": "humanoid.guide"
+                        }
+
+                        try:
+                            st.info("Filling robots' values")
+                            print("here filling")
+                            for output in app.stream(initial_state):
+                                for key, value in output.items():
+                                    pass
+                            print("here filling")
+
+                            robot = value["robot"]
+
+                            with open(filename, 'a', encoding='utf-8') as f:
+                                f.write(robot.to_csv_row() + "\n")
+                            st.write("Done")
+                            st.session_state.all_res.append(robot)
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"Error step {current_index} : {e}")
+                            if st.button("⏭️ Go next"):
+                                st.rerun()
 
                     # If a confirmed match is selected
-                    if confirmed_match :
+                    if confirmed_match and st.session_state.confirmation_clicked :
                         st.markdown("✅ This robot is confirmed to match an existing one.")
                         choix = st.radio("What do you want to do?", ["Pass", "Add", "Update"], key=action_key)
                         if st.button("➡️ Continue", key=f"next_{current_index}"):
@@ -811,47 +836,15 @@ def webscrap() :
                                     elif choix == "Add":
                                         with open(filename, 'a', encoding='utf-8') as f:
                                             f.write(robot.to_csv_row() + "\n")
-
-                                st.session_state.index += 1
+                                print("here")
                                 st.rerun()
 
                             except Exception as e:
                                 st.error(f"Error at step {current_index} : {e}")
                                 if st.button("⏭️ Go next"):
-                                    st.session_state.index += 1
                                     st.rerun()
 
-                    else:
-                        # No confirmed matches: add robot safely after confirmation
-                        st.success("✅ No confirmed match. The robot will be safely added ")
-                        initial_state = {
-                            "robot": tp_robot,
-                            "completion_rate": completion_rate(tp_robot),
-                            "remaining_fields": get_empty_fields(tp_robot),
-                            "prompt": "",
-                            "url": "humanoid.guide"
-                        }
 
-                        try:
-                            st.info("Filling robots' values")
-                            for output in app.stream(initial_state):
-                                for key, value in output.items():
-                                    pass
-
-                            robot = value["robot"]
-
-                            with open(filename, 'a', encoding='utf-8') as f:
-                                f.write(robot.to_csv_row() + "\n")
-                            st.write("Done")
-                            st.session_state.all_res.append(robot)
-                            st.session_state.index += 1
-                            st.rerun()
-
-                        except Exception as e:
-                            st.error(f"Error step {current_index} : {e}")
-                            st.session_state.index += 1
-                            if st.button("⏭️ Go next"):
-                                st.rerun()
 
                 process_robot(latest_robots, os.path.join(general_directory,"../../data","humanoid_data_testing_2207.csv"))
 

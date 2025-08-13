@@ -11,7 +11,7 @@ Elle permet également de récupérer de manière semi-automatique les informati
 
 ### Prérequis
 Pour pouvoir utiliser l'application, il est nécessaire de disposer de :
-
+- Python
 - Streamlit  
 - Plotly  
 - Pandas  
