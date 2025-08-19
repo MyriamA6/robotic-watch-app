@@ -20,30 +20,40 @@ Pour pouvoir utiliser l'application, il est nécessaire de disposer de :
 - LangGraph  
 - rapidfuzz
 
+Tout s'installera automatiquement à la suite de l'utilisation du fichier requirements.txt
+
 ***Pour le mode administrateur***
 
 - OpenAI API
 - TavilySearch API
 
 ### Étapes
+
+### Usage Personnel
 1. Cloner le dépôt :  
    ```bash
-   git clone https://github.com/ton-projet.git
+   git clone https://github.com/MyriamA6/robotic-watch-app
    ```
-
-
-## Utilisation
-Une fois l'application installée, vous pouvez la lancer en suivant ce processus :
-
-Dans votre terminal :
-1. Parcourez vos dossiers pour arriver au dossier source de l'application :
+2. Installer les dépendances :
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Parcourez vos dossiers pour arriver au dossier source de l'application :
   ```bash
    cd C:\Users\jusqu\a\robotic-watch-app\src
    ```
-2. Lancez l'application en entrant la commande suivante :
+4. Lancez l'application en entrant la commande suivante :
    ```bash
    streamlit run app.py
    ```
+### Sur le Raspberry Pi 5
+1. Connectez le Raspberry Pi à un clavier, souris et écran.
+2. Ajustez la résolution de l'écran :
+   * Cliquez sur la framboise en haut à gauche
+   * Aller dans Screen Configuration > Preferences > Resolution
+   * Réduisez ou augmentez la résolution si nécessaire
+   * **Remarque : Pour les écrans 4K du Technocentre, une résolution de 1280 x 768 est recommandée pour un affichage optimal.**
+
 ### Mode Utilisateur
 L'application tournera automatiquement pour vous présenter les analyses réalisées.
 
@@ -57,26 +67,34 @@ Pour relancer une nouvelle recherche de robots humanoïdes les plus récents :
 
 ![Bouton Caché](boutonCache.png)
 
-   2. Vous aurez ainsi accès à la page de lancement de recherche de nouveau robot, nécessitant une identification :  
+2. Vous aurez ainsi accès à la page de lancement de recherche de nouveau robot, nécessitant une identification :  
       
-         | Identifiant     | Valeur   |
-         |-----------------|----------|
-         | **Username**    | `root`   |
-         | **Password**    | `root`   |
+      | Identifiant     | Valeur   |
+      |-----------------|----------|
+      | **Username**    | `root`   |
+      | **Password**    | `root`   |
 
 
-3. Vous aurez ainsi deux choix lancer une nouvelle recherche de robots humanoïdes ou continuer avec les robots récupérés précédemment.
+3. Vous aurez ainsi deux choix lancer une nouvelle recherche de robots humanoïdes ou en faire une manuelle.
+
+   - Pour faire une recherche manuelle, il suffit de modifier le document `latest_humanoid_robot.csv` et d'entrer le nom et l'entreprise du robot ou des robots, que vous souhaitez ajouter à la base de données, comme suit :
+     ```
+         [
+         {"name": "Unitree G1", "company": "Unitree"}
+         ]
+     ```
 4. Ensuite pour chaque robot un système multi-agents IA se lancera en arrière-plan pour remplir les informations de ce dernier dans la base de données et l'ajouter ainsi aux analyses.
 5. Si un robot récupéré à un nom similaire à d'autres déjà présents dans la base de données, pour chaque robot vous pourrez signaler s'ils sont:
 
-   - Identiques
-   - Différents
+   * Identiques
+   * Différents 
+ 
+    S'ils sont identiques vous pourrez choisir ce que vous souhaitez faire avec le robot trouvé précédemment :
 
-S'ils sont identiques vous pourrez choisir ce que vous souhaitez faire avec le robot trouvé précédemment :
+   * L'ignorer
+   * L'ajouter (si celui-ci n'avait effectivement pas le même nom qu'un autre il sera gardé, autrement il sera effacé avant les analyses)
+   * Mettre à jour le robot déjà présent dans la base de données avec les données du nouveau robot
 
-   - L'ignorer
-   - L'ajouter (si celui-ci n'avait effectivement pas le même nom qu'un autre il sera gardé, autrement il sera effacé avant les analyses)
-   - Mettre à jour le robot déjà présent dans la base de données avec les données du nouveau robot
 6. Une fois la recherche complétée, attendez que l'application signale que le nettoyage de la base de données a été effectuée.
 7. Déconnectez-vous en cliquant sur le bouton **logout**
 8. Cliquez sur le logo **Renault Group** pour lancer la page principale de l'application.

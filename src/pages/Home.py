@@ -10,6 +10,7 @@ import re
 from collections import Counter
 import base64
 from io import BytesIO
+
 import qrcode
 
 def home() :
@@ -31,7 +32,7 @@ def home() :
     # Loading the general path to access the wanted files
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
-    dataset_file=os.path.join(general_directory,"..","..","data/humanoid_data_cleaned2207.csv")
+    dataset_file=os.path.join(general_directory,"..","..","data/humanoid_data_cleaned.csv")
 
     # Cleaning the database of robots before use
     df = pd.read_csv(dataset_file)
@@ -53,17 +54,10 @@ def home() :
     df["Country"]=df["Country"].str.strip()
     df["Region"]=df["Region"].str.strip()
 
-
-    df.to_csv(os.path.join(general_directory,"../../data/updated_humanoid_data.csv"), index=False)
-
     # Retrieval of the path to the current directory
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
     anchor_ids =["title","Disclaimer", "news","calvin","means","map-repartition","company-repartition","physical-prop","s2", "top-robots-1","humanoid-creators","camera-type","percep-info","ai-tech","safety","s3","img-hum-flow","primary-use-case","robots-produced"]
-
-    # Retrieval of the dataset
-    dataset_file=os.path.join(general_directory,"..","../data/updated_humanoid_data.csv")
-    df = pd.read_csv(dataset_file)
 
     df = df.replace(
         to_replace=r'(?i)^\s*(n/d|n\.d|//n|n/a|na|none|null)\s*$',
@@ -127,6 +121,8 @@ def home() :
     # News section:
     # - Fetches latest humanoid robotics news via web scraping
     # - Adds JS slideshow to cycle through news items automatically
+    st.subheader("   ")
+    st.subheader("   ")
     st.subheader("   ", anchor="news")
 
     st.subheader(":newspaper: Latest in Humanoid Robotics   -   ***:grey[humanoidsdaily]***")
@@ -280,7 +276,7 @@ def home() :
         "Ukraine", "United Kingdom"
     ]
 
-    country_dataset=os.path.join(general_directory,"..","../data/country_co.csv")
+    country_dataset=os.path.join(general_directory,"..","../data/countries_co.csv")
     country_data = pd.read_csv(country_dataset)
 
     country_data = country_data.merge(df, how='right', left_on='Country', right_on='Country')
@@ -507,35 +503,17 @@ def home() :
     # This section analyzes the distribution of perception sensor types used by companies.
     # It processes the 'Vision Sensors type' column, replacing missing values with "Not specified".
     # Then, it loads a mapping CSV file containing sensor groupings and related keywords to standardize sensor types.
-    # The classify_sensor function matches sensor names to their groups based on keywords.
-    # The script compiles all sensor entries, splits them, classifies them, counts occurrences,
-    # and finally plots a pie chart showing the distribution of vision sensor types across the dataset.
 
     st.subheader("    ", anchor="camera-type")
     st.subheader("Repartition of perception sensors type used by companies")
     df_camera = df.copy()
     df_camera["Vision Sensors type"].fillna("Not specified", inplace=True)
 
-    df_sensor_map = pd.read_csv(os.path.join(general_directory, "../../data/vision_sensors.csv"), sep=";")
-
-    sensor_groups = {}
-    for _, row in df_sensor_map.iterrows():
-        key = row["Vision_sensors"].strip().lower()
-        keywords = [kw.strip().lower() for kw in row["other_names"].split(",")]
-        sensor_groups[key] = keywords
-
-    def classify_sensor(sensor_name):
-        sensor_name = sensor_name.strip().lower()
-        for group, keywords in sensor_groups.items():
-            if any(kw in sensor_name for kw in keywords):
-                return group
-        return sensor_name
-
     vision_sensors = df_camera["Vision Sensors type"].tolist()
     all_sensors = ", ".join(vision_sensors).replace("\n", " ").replace("\r", " ")
     separated_sensors = [s.strip() for s in all_sensors.split(",") if s.strip()]
 
-    classified_sensors = [classify_sensor(sensor) for sensor in separated_sensors]
+    classified_sensors = separated_sensors
     sensor_counts = Counter(classified_sensors)
 
     df_camera_count = pd.DataFrame(sensor_counts.items(), columns=["Camera Type", "Count"])
@@ -547,7 +525,6 @@ def home() :
     # Section that gives more information on the different perception sensors generally used in robots
     st.subheader("  ", anchor="percep-info")
     st.subheader("Some information about perception sensors :")
-    st.subheader("   ")
     st.subheader("   ")
     percep_sensors = [
         {
@@ -1138,6 +1115,63 @@ def home() :
             "This chart illustrates the projected 2025 valuation share of the **top five humanoid robotics companies**. "
             "Each slice represents the relative market valuation of a company, with the total valuation shown at the center of the chart."
         )
+
+    df_companies = pd.read_csv(os.path.join(general_directory, "../../data/companies_data.csv"))
+
+    import locale
+
+
+    locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+    st.subheader("  ")
+    st.subheader("  ")
+    st.subheader("  ")
+    st.subheader("📊 Market in numbers")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Sum of funding raised in humanoid robotics world**")
+        total_funding = df_companies["Total Funding (USD)"].sum()
+        st.metric(
+            label="Total Funding",
+            value=locale.format_string("%d", total_funding, grouping=True) + " $"
+        )
+
+    with col2:
+        st.markdown(
+            "*:grey[Sum of the valuation of all companies in the database]*  \n"
+        )
+        market_val = df_companies["Market Capitalization (USD)"].sum()
+        st.metric(
+            label="Market Valuation",
+            value=locale.format_string("%d", market_val, grouping=True) + " USD"
+        )
+
+    # Optional: add some spacing after the section
+    st.markdown("<br><hr><br>", unsafe_allow_html=True)
+
+    st.subheader("   ")
+    st.subheader("   ")
+    st.subheader("Top 5 higher market valuation companies' clients")
+    top5 = df_companies.sort_values(by="Market Capitalization (USD)", ascending=False).head(5)
+    for index, row in top5.iterrows():
+        st.subheader("   ", anchor="clients-"+row["Company Name"])
+        st.subheader(f"{row["Company Name"]} (Current market valuation: {row['Market Capitalization (USD)']} $)")
+        clients = row["Partner Companies in automobile world"]
+
+        if isinstance(clients, str):
+            clients_list = clients.strip("[]").split(";")
+            clients_list = [c.strip() for c in clients_list]
+        else:
+            clients_list = clients
+
+        st.write("**Partner Companies in automobile world**")
+        st.markdown("\n".join(f"- {client}" for client in clients_list))
+        st.write("---")
+
+    st.subheader("   ")
+    st.subheader("   ")
 
     # Page title
 

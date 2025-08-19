@@ -1,3 +1,5 @@
+from .companies_webscrape import companies_webscrape
+
 def webscrap() :
     """
         Manages a multi-agent AI pipeline that scrapes the latest humanoid robots revealed online,
@@ -308,20 +310,6 @@ def webscrap() :
         return fuzz.token_sort_ratio(robot_a_name, robot_b_name) >= threshold
 
 
-    def robot_already_exists(robot, robot_db):
-        for existing_robot in robot_db:
-            if is_similar_robot(robot.robot_name, existing_robot.robot_name):
-                if is_similar_robot(robot.company, existing_robot.company):
-                    return existing_robot  # On retourne le robot existant similaire
-        return None
-
-
-    def merge_robot_data(existing_robot, new_robot_data):
-        for field in vars(existing_robot):
-            if getattr(existing_robot, field) in ["", -1, "n/d", None]:
-                setattr(existing_robot, field, new_robot_data[field])
-        return existing_robot
-
 
     def extract_json_part(text: str) -> dict:
         pattern = r'\{(?:[^{}]|(?R))*\}'
@@ -545,393 +533,407 @@ def webscrap() :
 
     # if the authentication is done we can go to the next step
     if st.session_state.get('authentication_status'):
-        authenticator.logout()
+        col1,col2,col3=st.columns(3)
+        with col1 :
+            authenticator.logout()
+        st.session_state.financial_market = False
+        with col3 :
+            if st.button("Update companies financial results") :
+                st.error("Looking for companies financial results. Please wait for it to finish")
+                companies_webscrape(general_directory)
+                st.session_state.financial_market = True
+                st.success("Search completed")
+            else :
+                st.session_state.financial_market = True
 
-        # Variable that save the current state of the page to tell if we can look for information on specific robots or not yet as the search for nex robots have not been completed
-        if "can_continue" not in st.session_state:
-            st.session_state.can_continue = False
 
-        # Variable to save the current state of the page -> True means that we are completing the database
-        if "processing_robots" not in st.session_state:
-            st.session_state.processing_robots = False
+        if st.session_state.financial_market:
+            # Variable that save the current state of the page to tell if we can look for information on specific robots or not yet as the search for nex robots have not been completed
+            if "can_continue" not in st.session_state:
+                st.session_state.can_continue = False
 
-        if not st.session_state.get("processing_robots", False):
-            make_robot_search = st.radio(
-                "Do you want to look for new robots?",
-                options=["Yes", "No"]
-            )
+            # Variable to save the current state of the page -> True means that we are completing the database
+            if "processing_robots" not in st.session_state:
+                st.session_state.processing_robots = False
 
-            if st.button("Next step"):
-                if make_robot_search == "Yes":
-                    st.info("Looking for new info ! Please wait for the search to be completed")
+            if not st.session_state.get("processing_robots", False):
+                make_robot_search = st.radio(
+                    "Do you want to look for new robots?",
+                    options=["Yes", "No"]
+                )
 
-                    # Creation of an agent that retrieves as many recently unveiled robots as possible
-                    llm_find_robots = ChatOpenAI(
-                        model_name="gpt-4o-mini",
-                        temperature=0,
-                        openai_api_key=os.getenv("OPENAI_API_KEY"),
-                    )
+                if st.button("Next step"):
+                    if make_robot_search == "Yes":
+                        st.info("Looking for new info ! Please wait for the search to be completed")
 
-                    finding_robots_prompt = """
-                        You are a detective specialized in finding all the latest humanoid robots unveiled in 2025 on the following websites:
-                        - www.aparobot.com
-                        - humanoidroboticstechnology.com
-                        - www.linkedin.com
-                        - x.com
-        
-                        IMPORTANT DEFINITIONS AND RULES:
-                        - A **humanoid robot** is a robot with a human-like form: typically bipedal, or wheeled with a torso, arms, and/or head.
-                        - EXCLUDE ALL animal-inspired robots such as robot dogs, robot cats, quadrupedal, insect-like robots, snake robots, or any zoomorphic robots.
-                        - DO NOT include ANY robot that walks on four legs or resembles animals in shape or behavior.
-        
-                        Use the available tools to search and extract the most recent humanoid robots
-                        """
+                        # Creation of an agent that retrieves as many recently unveiled robots as possible
+                        llm_find_robots = ChatOpenAI(
+                            model_name="gpt-4o-mini",
+                            temperature=0,
+                            openai_api_key=os.getenv("OPENAI_API_KEY"),
+                        )
 
-                    find_robots_agent = create_react_agent(llm_find_robots, [search_tavily, fetch_full_webpage],prompt=finding_robots_prompt)
+                        finding_robots_prompt = """
+                            You are a detective specialized in finding all the latest humanoid robots unveiled in 2025 on the following websites:
+                            - www.aparobot.com
+                            - humanoidroboticstechnology.com
+                            - www.linkedin.com
+                            - x.com
+            
+                            IMPORTANT DEFINITIONS AND RULES:
+                            - A **humanoid robot** is a robot with a human-like form: typically bipedal, or wheeled with a torso, arms, and/or head.
+                            - EXCLUDE ALL animal-inspired robots such as robot dogs, robot cats, quadrupedal, insect-like robots, snake robots, or any zoomorphic robots.
+                            - DO NOT include ANY robot that walks on four legs or resembles animals in shape or behavior.
+            
+                            Use the available tools to search and extract the most recent humanoid robots
+                            """
 
-                    latest_robots = find_robots_agent.invoke({"messages": [("human", f"""
-                        Using the available tools as many times as you want, find the most recent **humanoid** robots (bipedal or wheeled ONLY — absolutely NO quadrupedal or animal-like robots) unveiled on the given websites.
-        
-                        IMPORTANT OUTPUT RULES:
-                        - Your output MUST be a single, valid JSON array.
-                        - Each element must be a JSON object with exactly these keys:
-                            - "name" (the robot's name),
-                            - "company" (the company that unveiled it)
-                        - DO NOT include any explanations, bullet points, or extra formatting — ONLY valid JSON.
-        
-                        Example format:
-                        [
-                          {{"name": "RobotX", "company": "FutureCorp"}},
-                          {{"name": "RobotY", "company": "TechnoBots"}}
-                        ]
-                        """)]})["messages"][-1].content
-                    st.success("✅ Here are the most recent robots unveiled !")
-                    robot_list = json.loads(latest_robots)
-                    for robot in robot_list:
-                        st.markdown("---")
-                        st.markdown(f"### 🤖 {robot['name']}")
-                        st.markdown(f"**Company**: {robot['company']}")
+                        find_robots_agent = create_react_agent(llm_find_robots, [search_tavily, fetch_full_webpage],prompt=finding_robots_prompt)
 
-                    # Saving the humanoid robots for later if needed
-                    with open(os.path.join(general_directory,"latest_humanoid_robots.txt"), "w", encoding="utf-8") as f:
-                        f.write(latest_robots)
-                    st.session_state.can_continue = True
-                else:
-                    st.write("Search skipped.")
-                    st.session_state.can_continue = True
+                        latest_robots = find_robots_agent.invoke({"messages": [("human", f"""
+                            Using the available tools as many times as you want, find the most recent **humanoid** robots (bipedal or wheeled ONLY — absolutely NO quadrupedal or animal-like robots) unveiled on the given websites.
+            
+                            IMPORTANT OUTPUT RULES:
+                            - Your output MUST be a single, valid JSON array.
+                            - Each element must be a JSON object with exactly these keys:
+                                - "name" (the robot's name),
+                                - "company" (the company that unveiled it)
+                            - DO NOT include any explanations, bullet points, or extra formatting — ONLY valid JSON.
+            
+                            Example format:
+                            [
+                              {{"name": "RobotX", "company": "FutureCorp"}},
+                              {{"name": "RobotY", "company": "TechnoBots"}}
+                            ]
+                            """)]})["messages"][-1].content
+                        st.success("✅ Here are the most recent robots unveiled !")
+                        robot_list = json.loads(latest_robots)
+                        for robot in robot_list:
+                            st.markdown("---")
+                            st.markdown(f"### 🤖 {robot['name']}")
+                            st.markdown(f"**Company**: {robot['company']}")
 
-            with open(os.path.join(general_directory,"latest_humanoid_robots.txt"), "r", encoding="utf-8") as f:
-                latest_robots = f.read()
+                        # Saving the humanoid robots for later if needed
+                        with open(os.path.join(general_directory,"latest_humanoid_robots.txt"), "w", encoding="utf-8") as f:
+                            f.write(latest_robots)
+                        st.session_state.can_continue = True
+                    else:
+                        st.write("Search skipped.")
+                        st.session_state.can_continue = True
 
-        if st.session_state.get("can_continue", True):
-            if st.button("Launch robot deep research") or st.session_state.get("processing_robots", True):
                 with open(os.path.join(general_directory,"latest_humanoid_robots.txt"), "r", encoding="utf-8") as f:
                     latest_robots = f.read()
 
-
-                def parse_robot_json_output(llm_output: str):
-                    """
-                        Extracts and parses a JSON array of robot objects from a text output.
-
-                        Args:
-                            llm_output (str): Text containing a JSON array.
-
-                        Returns:
-                            list of dict: List of robots with keys "name" and "company".
-
-                        Raises:
-                            ValueError: If no valid JSON array is found, if JSON is invalid,
-                                        or if any robot entry is malformed.
-                    """
-                    try:
-                        match = re.search(r'\[.*\]', llm_output, re.DOTALL)
-                        if not match:
-                            raise ValueError("No JSON array found in the output.")
-
-                        json_str = match.group(0)
-
-                        data = json.loads(json_str)
-
-                        if not isinstance(data, list):
-                            raise ValueError("Parsed JSON is not a list.")
-                        for robot in data:
-                            if not isinstance(robot, dict) or \
-                                    not all(k in robot for k in ("name", "company")):
-                                raise ValueError("Invalid robot entry found.")
-
-                        return data
-
-                    except json.JSONDecodeError as e:
-                        raise ValueError(f"Invalid JSON format: {e}")
+            if st.session_state.get("can_continue", True):
+                if st.button("Launch robot deep research") or st.session_state.get("processing_robots", True):
+                    with open(os.path.join(general_directory,"latest_humanoid_robots.txt"), "r", encoding="utf-8") as f:
+                        latest_robots = f.read()
 
 
-                latest_robots = parse_robot_json_output(latest_robots)
+                    def parse_robot_json_output(llm_output: str):
+                        """
+                            Extracts and parses a JSON array of robot objects from a text output.
 
-                # Function to help clean a database
-                def clean_company_name(name):
-                    """
-                       Normalize a company name by lowercasing, trimming, and removing common suffixes.
+                            Args:
+                                llm_output (str): Text containing a JSON array.
 
-                       Args:
-                           name (str): The company name to clean.
+                            Returns:
+                                list of dict: List of robots with keys "name" and "company".
 
-                       Returns:
-                           str: The cleaned company name.
-                    """
-                    name = name.lower().strip()
-                    name = name.replace("inc.", "").replace("inc", "").replace("ltd.", "").replace("ltd", "")
-                    return name
-
-                def process_robot(json_list, filename):
-                    """
-                        Process a list of robot entries by comparing them to a CSV database loaded into session state.
-                        Matches robots based on name and company similarity using Levenshtein distance.
-                        Allow the user to choose between ignoring the robot or adding it to the database.
-                        In this second case it will launch the multi-agent AI system to look for all the information of the robot, before updating the database.
-
-                        Args:
-                            json_list (list): List of robot dicts with keys "name" and "company".
-                            filename (str): Path to the CSV file with robot data.
-
-                        Side effects:
-                            Updates Streamlit session state with progress and matching results.
-                    """
-                    # indicates that processing has started
-                    st.session_state.processing_robots = True
-
-                    # Initialize session state variables if not present
-                    if "index" not in st.session_state:
-                        st.session_state.index = 0
-                        st.session_state.all_res = []
-                        st.session_state.index_waiting = 0
-
-                    # Load the current database from CSV
-                    st.session_state.current_db = pd.read_csv(filename)
-                    st.session_state.all_matches = []
-
-                    current_index = st.session_state.index
-                    st.write("Robot number : ",current_index,"/",len(json_list))
-                    if current_index >= len(json_list):
-                        st.success("🎉 All robots were processed  !")
-                        return
-
-                    element = json_list[current_index]
-                    tp_robot = RobotSpec(robot_name=element["name"], company=element["company"])
-
-                    action_key = f"action_{current_index}"
-
-                    matches = []
-
-                    # Compare current robot with each entry in the database using name/company similarity
-                    for i, row in st.session_state.current_db.iterrows():
-                        old_robot_name = element["name"].lower().strip()
-                        old_robot_company = element["company"].lower().strip()
-                        new_robot_name = clean_company_name(row["Robot Name"].lower().strip())
-                        new_robot_company = clean_company_name(row["Company"].lower().strip())
-
-                        name_similar = (
-                                Levenshtein.normalized_similarity(new_robot_name, old_robot_name) >= 0.6
-                                or old_robot_name in new_robot_name
-                                or new_robot_name in old_robot_name
-                        )
-                        company_similar = (
-                                Levenshtein.normalized_similarity(old_robot_company, new_robot_company) >= 0.6
-                                or old_robot_company in new_robot_company
-                                or new_robot_company in old_robot_company
-                        )
-
-                        if name_similar and company_similar:
-                            matches.append((i, row)) # keep index and row for potential update
-
-                    st.subheader(f"🤖 Robot #{current_index + 1}")
-                    st.markdown(f"**New Robot :** {element['name']} | {element['company']}")
-
-                    confirmed_match = None
-                    st.session_state.confirmation_clicked = False
-                    st.session_state.index += 1
-
-                    # If matches found, ask user to confirm if any are the same robot
-                    if matches:
-                        st.warning("⚠️ Similar robots detected. Are they the same?")
-                        for idx, (i_match, row) in enumerate(matches):
-                            with st.expander(f"Match {idx + 1}: {row['Robot Name']} | {row['Company']}"):
-                                is_same = st.radio(
-                                    f"Is this the same robot as '{element['name']}'?",
-                                    ["Not the same", "Yes, same robot"],
-                                    key=f"match_confirm_{current_index}_{idx}"
-                                )
-                                if is_same == "Yes, same robot":
-                                    confirmed_match = (i_match, row)
-
-                        if st.button("Confirm choice", key="confirmation"+str(current_index)):
-                            st.session_state.confirmation_clicked = True
-                    else:
-                        # No confirmed matches: add robot safely after confirmation
-                        st.success("✅ No confirmed match. The robot will be safely added ")
-                        initial_state = {
-                            "robot": tp_robot,
-                            "completion_rate": completion_rate(tp_robot),
-                            "remaining_fields": get_empty_fields(tp_robot),
-                            "prompt": "",
-                            "url": "humanoid.guide"
-                        }
-
+                            Raises:
+                                ValueError: If no valid JSON array is found, if JSON is invalid,
+                                            or if any robot entry is malformed.
+                        """
                         try:
-                            st.info("Filling robots' values")
-                            print("here filling")
-                            for output in app.stream(initial_state):
-                                for key, value in output.items():
-                                    pass
-                            print("here filling")
+                            match = re.search(r'\[.*\]', llm_output, re.DOTALL)
+                            if not match:
+                                raise ValueError("No JSON array found in the output.")
 
-                            robot = value["robot"]
+                            json_str = match.group(0)
 
-                            with open(filename, 'a', encoding='utf-8') as f:
-                                f.write(robot.to_csv_row() + "\n")
-                            st.write("Done")
-                            st.session_state.all_res.append(robot)
-                            st.rerun()
+                            data = json.loads(json_str)
 
-                        except Exception as e:
-                            st.error(f"Error step {current_index} : {e}")
-                            if st.button("⏭️ Go next"):
-                                st.rerun()
+                            if not isinstance(data, list):
+                                raise ValueError("Parsed JSON is not a list.")
+                            for robot in data:
+                                if not isinstance(robot, dict) or \
+                                        not all(k in robot for k in ("name", "company")):
+                                    raise ValueError("Invalid robot entry found.")
 
-                    # If a confirmed match is selected
-                    if confirmed_match and st.session_state.confirmation_clicked :
-                        st.markdown("✅ This robot is confirmed to match an existing one.")
-                        choix = st.radio("What do you want to do?", ["Pass", "Add", "Update"], key=action_key)
-                        if st.button("➡️ Continue", key=f"next_{current_index}"):
+                            return data
+
+                        except json.JSONDecodeError as e:
+                            raise ValueError(f"Invalid JSON format: {e}")
+
+
+                    latest_robots = parse_robot_json_output(latest_robots)
+
+                    # Function to help clean a database
+                    def clean_company_name(name):
+                        """
+                           Normalize a company name by lowercasing, trimming, and removing common suffixes.
+
+                           Args:
+                               name (str): The company name to clean.
+
+                           Returns:
+                               str: The cleaned company name.
+                        """
+                        name = name.lower().strip()
+                        name = name.replace("inc.", "").replace("inc", "").replace("ltd.", "").replace("ltd", "")
+                        return name
+
+                    def process_robot(json_list, filename):
+                        """
+                            Process a list of robot entries by comparing them to a CSV database loaded into session state.
+                            Matches robots based on name and company similarity using Levenshtein distance.
+                            Allow the user to choose between ignoring the robot or adding it to the database.
+                            In this second case it will launch the multi-agent AI system to look for all the information of the robot, before updating the database.
+
+                            Args:
+                                json_list (list): List of robot dicts with keys "name" and "company".
+                                filename (str): Path to the CSV file with robot data.
+
+                            Side effects:
+                                Updates Streamlit session state with progress and matching results.
+                        """
+                        # indicates that processing has started
+                        st.session_state.processing_robots = True
+
+                        # Initialize session state variables if not present
+                        if "index" not in st.session_state:
+                            st.session_state.index = 0
+                            st.session_state.all_res = []
+                            st.session_state.index_waiting = 0
+
+                        # Load the current database from CSV
+                        st.session_state.current_db = pd.read_csv(filename)
+                        st.session_state.all_matches = []
+
+                        current_index = st.session_state.index
+                        st.write("Robot number : ",current_index,"/",len(json_list))
+                        if current_index >= len(json_list):
+                            st.success("🎉 All robots were processed  !")
+                            return
+
+                        element = json_list[current_index]
+                        tp_robot = RobotSpec(robot_name=element["name"], company=element["company"])
+
+                        action_key = f"action_{current_index}"
+
+                        matches = []
+
+                        # Compare current robot with each entry in the database using name/company similarity
+                        for i, row in st.session_state.current_db.iterrows():
+                            old_robot_name = element["name"].lower().strip()
+                            old_robot_company = element["company"].lower().strip()
+                            new_robot_name = clean_company_name(row["Robot Name"].lower().strip())
+                            new_robot_company = clean_company_name(row["Company"].lower().strip())
+
+                            name_similar = (
+                                    Levenshtein.normalized_similarity(new_robot_name, old_robot_name) >= 0.6
+                                    or old_robot_name in new_robot_name
+                                    or new_robot_name in old_robot_name
+                            )
+                            company_similar = (
+                                    Levenshtein.normalized_similarity(old_robot_company, new_robot_company) >= 0.6
+                                    or old_robot_company in new_robot_company
+                                    or new_robot_company in old_robot_company
+                            )
+
+                            if name_similar and company_similar:
+                                matches.append((i, row)) # keep index and row for potential update
+
+                        st.subheader(f"🤖 Robot #{current_index + 1}")
+                        st.markdown(f"**New Robot :** {element['name']} | {element['company']}")
+
+                        confirmed_match = None
+                        st.session_state.confirmation_clicked = False
+                        st.session_state.index += 1
+
+                        # If matches found, ask user to confirm if any are the same robot
+                        if matches:
+                            st.warning("⚠️ Similar robots detected. Are they the same?")
+                            for idx, (i_match, row) in enumerate(matches):
+                                with st.expander(f"Match {idx + 1}: {row['Robot Name']} | {row['Company']}"):
+                                    is_same = st.radio(
+                                        f"Is this the same robot as '{element['name']}'?",
+                                        ["Not the same", "Yes, same robot"],
+                                        key=f"match_confirm_{current_index}_{idx}"
+                                    )
+                                    if is_same == "Yes, same robot":
+                                        confirmed_match = (i_match, row)
+
+                            if st.button("Confirm choice", key="confirmation"+str(current_index)):
+                                st.session_state.confirmation_clicked = True
+                        else:
+                            # No confirmed matches: add robot safely after confirmation
+                            st.success("✅ No confirmed match. The robot will be safely added ")
+                            initial_state = {
+                                "robot": tp_robot,
+                                "completion_rate": completion_rate(tp_robot),
+                                "remaining_fields": get_empty_fields(tp_robot),
+                                "prompt": "",
+                                "url": "humanoid.guide"
+                            }
+
                             try:
-                                if choix != "Pass":
-                                    initial_state = {
-                                        "robot": tp_robot,
-                                        "completion_rate": completion_rate(tp_robot),
-                                        "remaining_fields": get_empty_fields(tp_robot),
-                                        "prompt": "",
-                                        "url": "humanoid.guide"
-                                    }
-                                    st.info(":gear: Filling robot's values ...")
-                                    for output in app.stream(initial_state):
-                                        for key, value in output.items():
-                                            pass
-                                    robot = value["robot"]
+                                st.info("Filling robots' values")
+                                print("here filling")
+                                for output in app.stream(initial_state):
+                                    for key, value in output.items():
+                                        pass
+                                print("here filling")
 
-                                    # Update existing record if requested
-                                    if confirmed_match and choix == "Update":
-                                        i_match, match_row = confirmed_match
-                                        for field in vars(robot):
-                                            val_robot = getattr(robot, field)
-                                            col_name = field.replace('_', ' ').title()
-                                            if (match_row.get(col_name, "") in ["", "n/d", -1, None]) and val_robot not in [
-                                                "",
-                                                "n/d",
-                                                -1,
-                                                None]:
-                                                st.session_state.current_db.at[i_match, col_name] = val_robot
-                                                st.info(f"🛠️ Updated {field} → {val_robot}")
-                                        st.session_state.current_db.to_csv(filename, index=False)
+                                robot = value["robot"]
 
-                                    # Add new robot entry if requested
-                                    elif choix == "Add":
-                                        with open(filename, 'a', encoding='utf-8') as f:
-                                            f.write(robot.to_csv_row() + "\n")
-                                print("here")
+                                with open(filename, 'a', encoding='utf-8') as f:
+                                    f.write(robot.to_csv_row() + "\n")
+                                st.write("Done")
+                                st.session_state.all_res.append(robot)
                                 st.rerun()
 
                             except Exception as e:
-                                st.error(f"Error at step {current_index} : {e}")
+                                st.error(f"Error step {current_index} : {e}")
                                 if st.button("⏭️ Go next"):
                                     st.rerun()
 
+                        # If a confirmed match is selected
+                        if confirmed_match and st.session_state.confirmation_clicked :
+                            st.markdown("✅ This robot is confirmed to match an existing one.")
+                            choix = st.radio("What do you want to do?", ["Pass", "Add", "Update"], key=action_key)
+                            if st.button("➡️ Continue", key=f"next_{current_index}"):
+                                try:
+                                    if choix != "Pass":
+                                        initial_state = {
+                                            "robot": tp_robot,
+                                            "completion_rate": completion_rate(tp_robot),
+                                            "remaining_fields": get_empty_fields(tp_robot),
+                                            "prompt": "",
+                                            "url": "humanoid.guide"
+                                        }
+                                        st.info(":gear: Filling robot's values ...")
+                                        for output in app.stream(initial_state):
+                                            for key, value in output.items():
+                                                pass
+                                        robot = value["robot"]
+
+                                        # Update existing record if requested
+                                        if confirmed_match and choix == "Update":
+                                            i_match, match_row = confirmed_match
+                                            for field in vars(robot):
+                                                val_robot = getattr(robot, field)
+                                                col_name = field.replace('_', ' ').title()
+                                                if (match_row.get(col_name, "") in ["", "n/d", -1, None]) and val_robot not in [
+                                                    "",
+                                                    "n/d",
+                                                    -1,
+                                                    None]:
+                                                    st.session_state.current_db.at[i_match, col_name] = val_robot
+                                                    st.info(f"🛠️ Updated {field} → {val_robot}")
+                                            st.session_state.current_db.to_csv(filename, index=False)
+
+                                        # Add new robot entry if requested
+                                        elif choix == "Add":
+                                            with open(filename, 'a', encoding='utf-8') as f:
+                                                f.write(robot.to_csv_row() + "\n")
+                                    print("here")
+                                    st.rerun()
+
+                                except Exception as e:
+                                    st.error(f"Error at step {current_index} : {e}")
+                                    if st.button("⏭️ Go next"):
+                                        st.rerun()
 
 
-                process_robot(latest_robots, os.path.join(general_directory,"../../data","humanoid_data_testing_2207.csv"))
 
-                # Condition to pursue by cleaning the data if all robots have been processed
-                if st.session_state.index == len(latest_robots):
-                    st.warning("Please wait for database to be cleaned ! ")
-                    df_humanoid_data = pd.read_csv(os.path.join(general_directory, "../../data", "humanoid_data_testing_2207.csv"))
-                    df_humanoid_data["Robot Name"] = df_humanoid_data["Robot Name"].str.strip()
-                    df_without_duplicates = df_humanoid_data.drop_duplicates(subset=['Robot Name'], keep='last')
-                    df_without_duplicates = df_without_duplicates[df_without_duplicates["Mobility Type"] != "quadrupedal"]
+                    process_robot(latest_robots, os.path.join(general_directory,"../../data","humanoid_data.csv"))
 
-                    import ast
-                    from langchain.chat_models import ChatOpenAI
+                    # Condition to pursue by cleaning the data if all robots have been processed
+                    if st.session_state.index == len(latest_robots):
+                        st.warning("Please wait for database to be cleaned ! ")
+                        df_humanoid_data = pd.read_csv(os.path.join(general_directory, "../../data", "humanoid_data.csv"))
+                        df_humanoid_data["Robot Name"] = df_humanoid_data["Robot Name"].str.strip()
+                        df_without_duplicates = df_humanoid_data.drop_duplicates(subset=['Robot Name'], keep='last')
+                        df_without_duplicates = df_without_duplicates[df_without_duplicates["Mobility Type"] != "quadrupedal"]
 
-
-                    # Creation of an agent that cleans the database : standardizing the format of values and unifying them.
-
-                    prompt_template = """
-                        You are a data cleaning assistant. Clean and standardize the values in the following column according to these rules:
-                            -Unify similar terms: Map all semantically equivalent or similar terms to a consistent, standard format.
-                                Example: "deep learning", "DeepLearning", "DL" → "DL"
-                                Example: "RGB-D", "3D", "Depth camera", "stereo" → "RGBD"
-                                Example : "Advanced safety systems", "Advanced safety", "Comprehensive safety...", and similar -> "Advanced safety protocols"
-                            -Remove generic or vague values:
-                                Discard entries that are too broad, ambiguous, or meaningless in context (e.g., "AI", "framework", "open-source").
-                            -Keep only specific, relevant technologies or components:
-                                For instance, valid values might include AI models like "YOLOv5", "GPT-4","ML" is useless, better to list techniques like "DL", "RL", "VLA" or others, or concrete hardware/software like "NVIDIA Jetson", "LiDAR", "RGBD".
-                            -Split compound entries:
-                                Replace separators like "and", "&", "/" with a semi-colon (";") only if all terms are individually valid and relevant.
-                            -Otherwise, remove the entry entirely.
-                            -Discard incoherent, mixed, or unrelated values:
-                                If a value combines unrelated concepts (e.g., "AI and BigData" in the "Computing Power" column), return an empty string.
-                            -When in doubt, remove the value.
-                        Output format:
-                            - Return a Python dictionary where each original value (string) is a key, and the cleaned value (or empty string) is the corresponding value.
-                        Column: {column_name}  
-                        Values: {column_values}
-                        """
-
-                    # LLM setup
-                    llm = ChatOpenAI(temperature=0, model="gpt-4")
+                        import ast
+                        from langchain.chat_models import ChatOpenAI
 
 
-                    def clean_and_replace_column(df, col):
-                        """
-                           Function using an LLM to clean and standardize the values of a given DataFrame column.
+                        # Creation of an agent that cleans the database : standardizing the format of values and unifying them.
 
-                           The function:
-                           1. Extracts unique non-null values from the column.
-                           2. Generates a prompt for the LLM to map raw values to cleaned ones.
-                           3. Parses the LLM's response as a dictionary mapping.
-                           4. Replaces original values with their cleaned equivalents in the DataFrame.
+                        prompt_template = """
+                            You are a data cleaning assistant. Clean and standardize the values in the following column according to these rules:
+                                -Unify similar terms: Map all semantically equivalent or similar terms to a consistent, standard format.
+                                    Example: "deep learning", "DeepLearning", "DL" → "DL"
+                                    Example: "RGB-D", "3D", "Depth camera", "stereo" → "RGBD"
+                                    Example : "Advanced safety systems", "Advanced safety", "Comprehensive safety...", and similar -> "Advanced safety protocols"
+                                -Remove generic or vague values:
+                                    Discard entries that are too broad, ambiguous, or meaningless in context (e.g., "AI", "framework", "open-source").
+                                -Keep only specific, relevant technologies or components:
+                                    For instance, valid values might include AI models like "YOLOv5", "GPT-4","ML" is useless, better to list techniques like "DL", "RL", "VLA" or others, 
+                                    or concrete hardware/software like "NVIDIA Jetson", "LiDAR", "RGBD".
+                                -Split compound entries:
+                                    Replace separators like "and", "&", "/" with a semi-colon (";") only if all terms are individually valid and relevant.
+                                -Otherwise, remove the entry entirely.
+                                -Discard incoherent, mixed, or unrelated values:
+                                    If a value combines unrelated concepts (e.g., "AI and BigData" in the "Computing Power" column), return an empty string.
+                                -When in doubt, remove the value.
+                            Output format:
+                                - Return a Python dictionary where each original value (string) is a key, and the cleaned value (or empty string) is the corresponding value.
+                            Column: {column_name}  
+                            Values: {column_values}
+                            """
 
-                           Args:
-                               df (pd.DataFrame): The DataFrame to process.
-                               col (str): Name of the column to clean.
-
-                           Returns:
-                               str: The raw LLM response (mapping as text), or an error message if something fails.
-                        """
-                        try:
-                            unique_values = df[col].dropna().astype(str).unique().tolist()
-                            prompt = prompt_template.format(column_name=col, column_values=unique_values)
-                            response_text = llm.predict(prompt)
-
-                            cleaned_mapping = ast.literal_eval(response_text)
-
-                            df[col] = df[col].astype(str).map(cleaned_mapping).fillna("")
-                            return response_text
-                        except Exception as e:
-                            return f"An error occurred: {str(e)}"
+                        # LLM setup
+                        llm = ChatOpenAI(temperature=0, model="gpt-4")
 
 
-                    col_to_check = ["Vision Sensors type", "Speaker", "Microphone", "Safety Features", "Actuator Type",
-                                    "Reducer Type",
-                                    "Motor Type", "Force Sensor", "Encoder per Actuator", "Computing Power",
-                                    "AI Technology used"]
+                        def clean_and_replace_column(df, col):
+                            """
+                               Function using an LLM to clean and standardize the values of a given DataFrame column.
 
-                    for col in col_to_check:
-                        clean_and_replace_column(df_without_duplicates, col)
-                        print(col + " cleaned")
+                               The function:
+                               1. Extracts unique non-null values from the column.
+                               2. Generates a prompt for the LLM to map raw values to cleaned ones.
+                               3. Parses the LLM's response as a dictionary mapping.
+                               4. Replaces original values with their cleaned equivalents in the DataFrame.
 
-                    # Saving the result in a CSV database
-                    df_without_duplicates.to_csv(os.path.join(general_directory,"../../data","humanoid_data_cleaned2207.csv"))
-                    st.success("You may know look at the analysis on the Home page !")
+                               Args:
+                                   df (pd.DataFrame): The DataFrame to process.
+                                   col (str): Name of the column to clean.
 
-    # Management of incorrect login
+                               Returns:
+                                   str: The raw LLM response (mapping as text), or an error message if something fails.
+                            """
+                            try:
+                                unique_values = df[col].dropna().astype(str).unique().tolist()
+                                prompt = prompt_template.format(column_name=col, column_values=unique_values)
+                                response_text = llm.predict(prompt)
+
+                                cleaned_mapping = ast.literal_eval(response_text)
+
+                                df[col] = df[col].astype(str).map(cleaned_mapping).fillna("")
+                                return response_text
+                            except Exception as e:
+                                return f"An error occurred: {str(e)}"
+
+
+                        col_to_check = ["Vision Sensors type", "Speaker", "Microphone", "Safety Features", "Actuator Type",
+                                        "Reducer Type",
+                                        "Motor Type", "Force Sensor", "Encoder per Actuator", "Computing Power",
+                                        "AI Technology used"]
+
+                        for col in col_to_check:
+                            clean_and_replace_column(df_without_duplicates, col)
+                            print(col + " cleaned")
+
+                        # Saving the result in a CSV database
+                        df_without_duplicates.to_csv(os.path.join(general_directory,"../../data","humanoid_data_cleaned.csv"))
+                        st.success("You may know look at the analysis on the Home page !")
+
+        # Management of incorrect login
     elif st.session_state.get('authentication_status') is False:
         st.error('Username/password is incorrect')
 

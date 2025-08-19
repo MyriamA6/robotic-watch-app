@@ -1,6 +1,3 @@
 [
-  {
-    "name": "Calvin-40",
-    "company": "Wandercraft"
-  }
+    {"name": "Unitree G1", "company": "Unitree"}
 ]
