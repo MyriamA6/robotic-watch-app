@@ -334,7 +334,7 @@ def webscrap() :
 
 
     # Creation of an agent in charge of finding on internet as much information as possible on a given robot
-    llm_websearch = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm_websearch = ChatOpenAI(model="gpt-4o", temperature=0,openai_api_key=os.getenv("OPENAI_API_KEY"))
 
     tools = [search_tavily, fetch_full_webpage]
 
@@ -400,7 +400,7 @@ def webscrap() :
 
     def humanoid_guided_websearch(state):
         """
-        Node invoking the url search agent
+        Web search based on the re-phrased question.
 
         Args:
             state (dict): The current graph state
@@ -413,22 +413,22 @@ def webscrap() :
         robot = state["robot"]
         url = state["url"]
 
+        print(robot.robot_name, robot.company, url)
+
         found_url = retrieving_llm.invoke({"messages": [("human", f"""
-        Search the web using the following format and using the tools you have:
-        {url} {robot.robot_name} {robot.company}
-    
-        Determine if there exists a specific page that contains information about the humanoid robot mentioned.
-    
-        ✅ If such a page exists, return ONLY the full URL of that exact page (not the homepage).
-    
-        ❌ Do NOT include any explanations, summaries, or comments.
-    
-        ❌ Do NOT respond if you are uncertain.
-    
-        If no relevant page is found, respond with exactly:
+        Search the web for information about the humanoid robot: "{robot.robot_name}" by "{robot.company}".
+        You must restrict the search ONLY to the website: {url}.
+
+        Rules:
+        - Return the full URL of the page from {url} that specifically describes this robot.
+        - Do not return the homepage unless it is the only page containing information about the robot.
+        - If no relevant page is found on {url}, respond with exactly:
         NOT FOUND
+        - Do not include explanations, summaries, or comments.
+
         """)]})["messages"][-1].content
 
+        print(found_url)
         if found_url != "NOT FOUND":
             # Web search
             scrape_result = web_scraper.invoke({
@@ -683,7 +683,7 @@ def webscrap() :
                         name = name.replace("inc.", "").replace("inc", "").replace("ltd.", "").replace("ltd", "")
                         return name
 
-                    def process_robot(json_list, filename):
+                    def process_robot(json_list, filename_src, filename_dest):
                         """
                             Process a list of robot entries by comparing them to a CSV database loaded into session state.
                             Matches robots based on name and company similarity using Levenshtein distance.
@@ -707,7 +707,7 @@ def webscrap() :
                             st.session_state.index_waiting = 0
 
                         # Load the current database from CSV
-                        st.session_state.current_db = pd.read_csv(filename)
+                        st.session_state.current_db = pd.read_csv(filename_src)
                         st.session_state.all_matches = []
 
                         current_index = st.session_state.index
@@ -779,15 +779,13 @@ def webscrap() :
 
                             try:
                                 st.info("Filling robots' values")
-                                print("here filling")
                                 for output in app.stream(initial_state):
                                     for key, value in output.items():
                                         pass
-                                print("here filling")
 
                                 robot = value["robot"]
 
-                                with open(filename, 'a', encoding='utf-8') as f:
+                                with open(filename_dest, 'a', encoding='utf-8') as f:
                                     f.write(robot.to_csv_row() + "\n")
                                 st.write("Done")
                                 st.session_state.all_res.append(robot)
@@ -831,13 +829,12 @@ def webscrap() :
                                                     None]:
                                                     st.session_state.current_db.at[i_match, col_name] = val_robot
                                                     st.info(f"🛠️ Updated {field} → {val_robot}")
-                                            st.session_state.current_db.to_csv(filename, index=False)
+                                            st.session_state.current_db.to_csv(filename_dest)
 
                                         # Add new robot entry if requested
                                         elif choix == "Add":
-                                            with open(filename, 'a', encoding='utf-8') as f:
+                                            with open(filename_dest, 'a', encoding='utf-8') as f:
                                                 f.write(robot.to_csv_row() + "\n")
-                                    print("here")
                                     st.rerun()
 
                                 except Exception as e:
@@ -847,7 +844,7 @@ def webscrap() :
 
 
 
-                    process_robot(latest_robots, os.path.join(general_directory,"../../data","humanoid_data.csv"))
+                    process_robot(latest_robots, os.path.join(general_directory,"../../data","humanoid_data_cleaned.csv"),os.path.join(general_directory,"../../data","humanoid_data.csv"))
 
                     # Condition to pursue by cleaning the data if all robots have been processed
                     if st.session_state.index == len(latest_robots):
@@ -858,61 +855,73 @@ def webscrap() :
                         df_without_duplicates = df_without_duplicates[df_without_duplicates["Mobility Type"] != "quadrupedal"]
 
                         import ast
-                        from langchain.chat_models import ChatOpenAI
 
+                        prompt_cleaning = """
+                                            You are a data cleaning assistant. Clean and standardize the values in the column given by the Human according to these rules:
 
-                        # Creation of an agent that cleans the database : standardizing the format of values and unifying them.
+                                            1. **Unify into general categories whenever possible, allowing multiple categories per item**: 
+                                            For instance for vision sensors :
+                                               - Recognize vision sensors and hardware/software technologies separately.  
+                                               - Map values of vision sensors to one of the following standard categories:  
+                                                   - "RGB" → Standard cameras, webcam, visual spectrum, etc.  
+                                                   - "RGBD" → Depth cameras, stereo, 3D, Kinect, intel depth real sense camera, etc.  
+                                                   - "Thermal" → Infrared, thermal imaging, heat-based cameras.  
+                                                   - "LiDAR" → Any type of LiDAR-based sensor.  
+                                                   - "Radar" → Millimeter-wave radar, FMCW radar, etc.
+                                                   - "Fisheye"
+                                                   - "Eagle eye"  
+                                                   - "Other" → If irrelevant.  
 
-                        prompt_template = """
-                            You are a data cleaning assistant. Clean and standardize the values in the following column according to these rules:
-                                -Unify similar terms: Map all semantically equivalent or similar terms to a consistent, standard format.
-                                    Example: "deep learning", "DeepLearning", "DL" → "DL"
-                                    Example: "RGB-D", "3D", "Depth camera", "stereo" → "RGBD"
-                                    Example : "Advanced safety systems", "Advanced safety", "Comprehensive safety...", and similar -> "Advanced safety protocols"
-                                -Remove generic or vague values:
-                                    Discard entries that are too broad, ambiguous, or meaningless in context (e.g., "AI", "framework", "open-source").
-                                -Keep only specific, relevant technologies or components:
-                                    For instance, valid values might include AI models like "YOLOv5", "GPT-4","ML" is useless, better to list techniques like "DL", "RL", "VLA" or others, 
-                                    or concrete hardware/software like "NVIDIA Jetson", "LiDAR", "RGBD".
-                                -Split compound entries:
-                                    Replace separators like "and", "&", "/" with a semi-colon (";") only if all terms are individually valid and relevant.
-                                -Otherwise, remove the entry entirely.
-                                -Discard incoherent, mixed, or unrelated values:
-                                    If a value combines unrelated concepts (e.g., "AI and BigData" in the "Computing Power" column), return an empty string.
-                                -When in doubt, remove the value.
-                            Output format:
-                                - Return a Python dictionary where each original value (string) is a key, and the cleaned value (or empty string) is the corresponding value.
-                            Column: {column_name}  
-                            Values: {column_values}
-                            """
+                                            2. **Unify similar terms**:  
+                                               Example: "deep learning", "DeepLearning", "DL" → "DL"  
+                                               Example : "Vision-Language-Action Model" → "VLA"
+                                               Example: "RGB-D", "3D", "Depth camera", "stereo" → "RGBD"  
+                                               Example : "Advanced safety systems", "Advanced safety", "Comprehensive safety..." → "Advanced safety protocols"  
+
+                                            3. **Remove generic or vague values**:  
+                                               Discard entries that are too broad, ambiguous, or meaningless in context (e.g., "AI", "framework", "open-source").  
+
+                                            4. **Keep only specific, relevant technologies or components**:  
+                                               For instance, valid values might include AI models like "YOLOv5", "GPT-4";  
+                                               or concrete hardware/software like "NVIDIA Jetson", "LiDAR", "RGBD".  
+
+                                            5. **Split compound entries**:  
+                                               Replace separators like "and", "&", "/" with a semicolon (";") only if all terms are individually valid and relevant. If already in the right format keep the answers.
+
+                                            6. **Discard incoherent, mixed, or unrelated values**:  
+                                               If a value combines unrelated concepts (e.g., "AI and BigData" in the "Computing Power" column), return an empty string.  
+
+                                            7. **When in doubt, remove the value**.  
+
+                                            Output format:  
+                                            Return a Python dictionary where each original value (string) is a key, and the cleaned value (or empty string) is the corresponding value. 
+
+                                            Column name and values will be given by Human. 
+
+                                            """
 
                         # LLM setup
-                        llm = ChatOpenAI(temperature=0, model="gpt-4")
 
+                        llm_clean = ChatOpenAI(temperature=0, model="gpt-4o-mini",
+                                               openai_api_key=os.getenv("OPENAI_API_KEY"))
+
+                        clean_agent = create_react_agent(llm_clean, tools=[], prompt=prompt_cleaning)
 
                         def clean_and_replace_column(df, col):
-                            """
-                               Function using an LLM to clean and standardize the values of a given DataFrame column.
-
-                               The function:
-                               1. Extracts unique non-null values from the column.
-                               2. Generates a prompt for the LLM to map raw values to cleaned ones.
-                               3. Parses the LLM's response as a dictionary mapping.
-                               4. Replaces original values with their cleaned equivalents in the DataFrame.
-
-                               Args:
-                                   df (pd.DataFrame): The DataFrame to process.
-                                   col (str): Name of the column to clean.
-
-                               Returns:
-                                   str: The raw LLM response (mapping as text), or an error message if something fails.
-                            """
                             try:
                                 unique_values = df[col].dropna().astype(str).unique().tolist()
-                                prompt = prompt_template.format(column_name=col, column_values=unique_values)
-                                response_text = llm.predict(prompt)
+                                response_text = clean_agent.invoke({"messages": [("human", f"""
+                                You can clean : 
+                                            Column: {col}  
+                                            Values: {unique_values}  
+                                """
+                                                                                  )]})["messages"][-1].content
+                                response_text = response_text.replace("```python", "").replace("```", "")
+                                print(response_text)
+                                # response_text = llm_clean.predict(prompt)
 
                                 cleaned_mapping = ast.literal_eval(response_text)
+                                print(cleaned_mapping)
 
                                 df[col] = df[col].astype(str).map(cleaned_mapping).fillna("")
                                 return response_text

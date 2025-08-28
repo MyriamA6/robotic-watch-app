@@ -1,5 +1,6 @@
 # 📦 Application de veille technologique sur les robots humanoïdes
 
+---
 ## 📝 Introduction
 
 Il s'agit d'une application de veille technologique sur la robotique humanoïde destinée à centraliser et simplifier l’accès aux informations clés du secteur.  
@@ -39,7 +40,7 @@ Tout s'installera automatiquement à la suite de l'utilisation du fichier requir
    pip install -r requirements.txt
    ```
 3. Parcourez vos dossiers pour arriver au dossier source de l'application :
-  ```bash
+   ```bash
    cd C:\Users\jusqu\a\robotic-watch-app\src
    ```
 4. Lancez l'application en entrant la commande suivante :
@@ -80,7 +81,8 @@ Pour relancer une nouvelle recherche de robots humanoïdes les plus récents :
    - Pour faire une recherche manuelle, il suffit de modifier le document `latest_humanoid_robot.csv` et d'entrer le nom et l'entreprise du robot ou des robots, que vous souhaitez ajouter à la base de données, comme suit :
      ```
          [
-         {"name": "Unitree G1", "company": "Unitree"}
+         {"name": "Unitree G1", "company": "Unitree"},
+         {"name": "RobotERA L7", "company": "RobotERA"}
          ]
      ```
 4. Ensuite pour chaque robot un système multi-agents IA se lancera en arrière-plan pour remplir les informations de ce dernier dans la base de données et l'ajouter ainsi aux analyses.

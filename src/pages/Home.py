@@ -57,6 +57,7 @@ def home() :
     # Retrieval of the path to the current directory
     general_directory = os.path.dirname(os.path.abspath(__file__))
 
+    #list containing the ids of each section shown in the app
     anchor_ids =["title","Disclaimer", "news","calvin","means","map-repartition","company-repartition","physical-prop","s2", "top-robots-1","humanoid-creators","camera-type","percep-info","ai-tech","safety","s3","img-hum-flow","primary-use-case","robots-produced"]
 
     df = df.replace(
@@ -510,8 +511,8 @@ def home() :
     df_camera["Vision Sensors type"].fillna("Not specified", inplace=True)
 
     vision_sensors = df_camera["Vision Sensors type"].tolist()
-    all_sensors = ", ".join(vision_sensors).replace("\n", " ").replace("\r", " ")
-    separated_sensors = [s.strip() for s in all_sensors.split(",") if s.strip()]
+    all_sensors = "; ".join(vision_sensors).replace("\n", " ").replace("\r", " ")
+    separated_sensors = [s.strip() for s in all_sensors.split(";") if s.strip()]
 
     classified_sensors = separated_sensors
     sensor_counts = Counter(classified_sensors)
@@ -948,7 +949,7 @@ def home() :
 
     st.divider()
 
-    anchor_ids.extend(["s4","country-cost-comp","tot-fundraise","market-description","val-share","warnings","poll"])
+    anchor_ids.extend(["s4","country-cost-comp","tot-fundraise","market-description","val-share"])
 
     st.subheader("    ")
     st.title("What is the current economic situation?", anchor="s4")
@@ -1123,11 +1124,11 @@ def home() :
 
     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
-    st.subheader("  ")
+    st.subheader("  ", anchor="global-numbers")
     st.subheader("  ")
     st.subheader("  ")
     st.subheader("📊 Market in numbers")
-
+    anchor_ids.append("global-numbers")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -1145,18 +1146,22 @@ def home() :
         market_val = df_companies["Market Capitalization (USD)"].sum()
         st.metric(
             label="Market Valuation",
-            value=locale.format_string("%d", market_val, grouping=True) + " USD"
+            value=locale.format_string("%d", market_val, grouping=True) + " $"
         )
 
     # Optional: add some spacing after the section
     st.markdown("<br><hr><br>", unsafe_allow_html=True)
 
-    st.subheader("   ")
+    anchor_ids.append("company-clients")
+    st.subheader("   ",anchor="company-clients")
     st.subheader("   ")
     st.subheader("Top 5 higher market valuation companies' clients")
+    st.subheader("   ")
+    st.subheader("   ")
     top5 = df_companies.sort_values(by="Market Capitalization (USD)", ascending=False).head(5)
     for index, row in top5.iterrows():
         st.subheader("   ", anchor="clients-"+row["Company Name"])
+        anchor_ids.append("clients-"+row["Company Name"])
         st.subheader(f"{row["Company Name"]} (Current market valuation: {row['Market Capitalization (USD)']} $)")
         clients = row["Partner Companies in automobile world"]
 
@@ -1168,13 +1173,15 @@ def home() :
 
         st.write("**Partner Companies in automobile world**")
         st.markdown("\n".join(f"- {client}" for client in clients_list))
+        st.subheader("   ")
+        st.subheader("   ")
         st.write("---")
 
     st.subheader("   ")
     st.subheader("   ")
 
     # Page title
-
+    anchor_ids.extend(["warnings","poll"])
     st.subheader("   ", anchor="warnings")
     st.title("🤖 Challenges of Building a Humanoid Robot")
     st.subheader("   ")
