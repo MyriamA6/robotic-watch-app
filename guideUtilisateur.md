@@ -74,8 +74,11 @@ Créez un fichier .env dans le dossier src/pages et ajoutez-y vos clés _**OpenA
    * Cliquez sur la framboise en haut à gauche
    * Aller dans Screen Configuration > Preferences > Resolution
    * Réduisez ou augmentez la résolution si nécessaire
-   * **Remarque : Pour les écrans 4K du Technocentre, une résolution de 1280 x 768 est recommandée pour un affichage optimal.**
-
+   * **Remarque : Pour les écrans 4K du Technocentre, une résolution de 1440 x 900 est recommandée pour un affichage optimal.**
+3. Les mêmes étapes peuvent être suivie pour lancer l'application depuis un Raspberry à l'exception de la dernière qui doit être la suivante :
+   ```bash
+   python -m streamlit run app.py
+   ```
 ### Mode Utilisateur
 L'application tournera automatiquement pour vous présenter les analyses réalisées.
 

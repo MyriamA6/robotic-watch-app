@@ -122,11 +122,12 @@ def companies_webscrape(general_directory):
     df_robots = pd.read_csv(os.path.join(general_directory,"../../data/humanoid_data_cleaned.csv"))
     companies = df_robots["Company"].unique()
 
-    filename=os.path.join(general_directory,"../../companies_data.csv")
+    filename=os.path.join(general_directory,"../../data/companies_data.csv")
     columns=["Company Name","Most important robot","Total Funding (USD)","Market Capitalization (USD) or Valuation","Number of Employees","Founding Date","Planned Robot Production Units","Partner Companies in automobile world"]
 
     for company in companies:
         try :
+            print("Looking for ",company,"'s data.")
             tp = web_scraper.invoke({
                 "messages": [
                     ("user", "Find data about " + company)
@@ -136,10 +137,14 @@ def companies_webscrape(general_directory):
             with open(filename, 'a', encoding='utf-8') as f:
                 f.write(to_csv_row(element_found, columns) + "\n")
 
+            print("Done.\n\n")
         except Exception as e:
             print(f"Error with {company}: {e}")
             pass
 
+    df = pd.read_csv(os.path.join(general_directory,"../../data/companies_data.csv"))
+    df= df.drop_duplicates(subset=['Company Name'], keep='last')
+    df.to_csv(os.path.join(general_directory,"../../data/companies_data.csv"))
 
 
 

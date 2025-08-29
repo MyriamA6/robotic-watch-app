@@ -905,12 +905,12 @@ def webscrap() :
                         llm_clean = ChatOpenAI(temperature=0, model="gpt-4o-mini",
                                                openai_api_key=os.getenv("OPENAI_API_KEY"))
 
-                        clean_agent = create_react_agent(llm_clean, tools=[], prompt=prompt_cleaning)
+                        cleaning_agent = create_react_agent(llm_clean, tools=[], prompt=prompt_cleaning)
 
                         def clean_and_replace_column(df, col):
                             try:
                                 unique_values = df[col].dropna().astype(str).unique().tolist()
-                                response_text = clean_agent.invoke({"messages": [("human", f"""
+                                response_text = cleaning_agent.invoke({"messages": [("human", f"""
                                 You can clean : 
                                             Column: {col}  
                                             Values: {unique_values}  

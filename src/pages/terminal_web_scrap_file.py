@@ -13,7 +13,7 @@ from langchain.tools import tool
 from langchain_tavily import TavilySearch
 from langgraph.prebuilt import create_react_agent
 
-from src.pages import companies_webscrape
+from companies_webscrape import companies_webscrape
 
 load_dotenv()
 general_directory = os.path.dirname(os.path.abspath(__file__))

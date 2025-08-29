@@ -3,7 +3,21 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="\companies_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\data\companies_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\data\countries_co.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -25,13 +39,6 @@
           </value>
         </entry>
         <entry key="\data\humanoid_data_cleaned.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\data\vision_sensors.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
