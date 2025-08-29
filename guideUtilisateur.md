@@ -31,22 +31,43 @@ Tout s'installera automatiquement à la suite de l'utilisation du fichier requir
 ### Étapes
 
 ### Usage Personnel
-1. Cloner le dépôt :  
+1. **Cloner le dépôt :**
    ```bash
    git clone https://github.com/MyriamA6/robotic-watch-app
+   cd robotic-watch-app
    ```
-2. Installer les dépendances :
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Parcourez vos dossiers pour arriver au dossier source de l'application :
-   ```bash
-   cd C:\Users\jusqu\a\robotic-watch-app\src
-   ```
-4. Lancez l'application en entrant la commande suivante :
-   ```bash
-   streamlit run app.py
-   ```
+   
+2. **Créer un environnement virtuel (recommandé)** : 
+    ```bash
+    python -m venv venv
+    ```
+        
+    Puis activer l’environnement :
+    
+    Windows : `venv\Scripts\activate`
+    
+    macOS / Linux :
+            `source venv/bin/activate`
+
+
+3. **Installer les dépendances** :
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. **Configurer les variables d’environnement** :
+Créez un fichier .env dans le dossier src/pages et ajoutez-y vos clés _**OpenAI**_ et _**Tavily Search**_ :
+    ```env
+    OPENAI_API_KEY=your_api_key_here
+    TAVILY_API_KEY=your_free_api_key_here
+    ```
+
+5. **Lancer l’application**:
+
+    ```bash
+    cd src
+    streamlit run app.py
+    ```
 ### Sur le Raspberry Pi 5
 1. Connectez le Raspberry Pi à un clavier, souris et écran.
 2. Ajustez la résolution de l'écran :
@@ -62,11 +83,12 @@ Un QR code sera disponible après la présentation de l'ensemble des analyses.
 N'hésitez pas à le scanner pour accéder aux sources utilisées.
 
 ### Mode administrateur
-Pour relancer une nouvelle recherche de robots humanoïdes les plus récents :
+Pour relancer une nouvelle recherche de robots humanoïdes les plus récents ou une mise à jour des données financières des entreprises. 
+Vous pouvez passer par le terminal en exécutant le fichier `terminal_web_scrap_file.py` ou directement via l'application (des bugs restent à corriger):
 
 1. Survolez la bande noire en haut de l'application avec la souris jusqu'à ce qu'un bouton apparaisse :
 
-![Bouton Caché](boutonCache.png)
+![Bouton Caché](data/images/boutonCache.png)
 
 2. Vous aurez ainsi accès à la page de lancement de recherche de nouveau robot, nécessitant une identification :  
       
@@ -76,15 +98,18 @@ Pour relancer une nouvelle recherche de robots humanoïdes les plus récents :
       | **Password**    | `root`   |
 
 
-3. Vous aurez ainsi deux choix lancer une nouvelle recherche de robots humanoïdes ou en faire une manuelle.
+3. Vous aurez ainsi plusieurs choix  :
 
-   - Pour faire une recherche manuelle, il suffit de modifier le document `latest_humanoid_robot.csv` et d'entrer le nom et l'entreprise du robot ou des robots, que vous souhaitez ajouter à la base de données, comme suit :
-     ```
-         [
-         {"name": "Unitree G1", "company": "Unitree"},
-         {"name": "RobotERA L7", "company": "RobotERA"}
-         ]
-     ```
+   * Lancer une nouvelle recherche de robots humanoïdes automatique.
+
+   * Faire une recherche manuelle, il suffit de modifier le document `latest_humanoid_robot.csv` et d'entrer le nom et l'entreprise du robot ou des robots, que vous souhaitez ajouter à la base de données, comme suit :
+           ```
+               [
+               {"name": "Unitree G1", "company": "Unitree"},
+               {"name": "RobotERA L7", "company": "RobotERA"}
+               ]
+           ```
+   * Lancer une mise à jour des données financières des entreprises
 4. Ensuite pour chaque robot un système multi-agents IA se lancera en arrière-plan pour remplir les informations de ce dernier dans la base de données et l'ajouter ainsi aux analyses.
 5. Si un robot récupéré à un nom similaire à d'autres déjà présents dans la base de données, pour chaque robot vous pourrez signaler s'ils sont:
 

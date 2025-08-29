@@ -43,14 +43,14 @@ def home() :
         regex=True
     )
 
-    numerical_columns = df[["Cost (USD)", "Weight (kg)", "Height(cm)", "Speed (m/s)", "Autonomy (hour)", "Total Degrees of Freedom (DOF)",
+    numerical_columns = df[["Year Unveiled","Cost (USD)", "Weight (kg)", "Height(cm)", "Speed (m/s)", "Autonomy (hour)", "Total Degrees of Freedom (DOF)",
          "Body Degrees of Freedom (DOF)", "Hands Degrees of Freedom (DOF)", "Two Hand Payload (kg)"]]
 
     # Converting the right columns to numeric
     for col in numerical_columns.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
     df = df.dropna(subset="Year Unveiled")
-    df["Year Unveiled"] = df["Year Unveiled"].astype(int)
+    df["Year Unveiled"] = df["Year Unveiled"].round().astype(int)
     df["Country"]=df["Country"].str.strip()
     df["Region"]=df["Region"].str.strip()
 
@@ -175,7 +175,7 @@ def home() :
                 // === News slideshow logic ===
                 let newsIndex = 0;
                 const newsItems = document.querySelectorAll(".news-item");
-                const newsDelay = 6000;
+                const newsDelay = 10000;
 
                 function showNews(index) {{
                     newsItems.forEach((el, i) => {{
@@ -678,7 +678,7 @@ def home() :
         // === percep slideshow logic ===
         let percepIndex = 0;
         const percepItems = document.querySelectorAll(".percep-block");
-        const percepDelay = 6000;
+        const percepDelay = 10000;
 
         function showpercep(index) {
         percepItems.forEach((el, i) => {
@@ -1181,7 +1181,7 @@ def home() :
     st.subheader("   ")
 
     # Page title
-    anchor_ids.extend(["warnings","poll"])
+    anchor_ids.extend(["warnings"])
     st.subheader("   ", anchor="warnings")
     st.title("🤖 Challenges of Building a Humanoid Robot")
     st.subheader("   ")
@@ -1307,50 +1307,12 @@ def home() :
 
 
 
-
-    form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdrzUFnm5xeL1qE285aBtBawOI21HqpfjalVDAYe1L0EEGE1Q/viewform?usp=dialog"
-
-    def qr_code_base64(url):
-        img = qrcode.make(url)
-        buf = BytesIO()
-        img.save(buf)
-        data = base64.b64encode(buf.getvalue()).decode("utf-8")
-        return f"data:image/png;base64,{data}"
-
-    qr_base64 = qr_code_base64(form_url)
-
-    html_block_info_robots += f"""
-<div class="challenge-block" id="challenge-qr"
-     style="
-       max-width: 320px;
-       margin: 1.5rem auto;
-       padding: 1.5rem 1rem;
-       background: #ffffffcc;
-       border-radius: 16px;
-       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-       text-align: center;
-       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-       font-size: 1.1rem;
-       color: #333;
-       backdrop-filter: blur(8px);
-     "
->
-  <h3 style="font-weight: 700; font-size: 1.4rem; margin-bottom: 1rem; color: #0078D7;">
-    📝 Participate in the poll
-  </h3>
-  <img src="{qr_base64}" width="200" alt="QR Code pour sondage"
-       style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 1rem;">
-</div>
-"""
-
-
-
     js_switch_challenge="""
     <script>
     // === Challenge slideshow logic ===
     let challengeIndex = 0;
     const challengeItems = document.querySelectorAll(".challenge-block");
-    const challengeDelay = 6000;
+    const challengeDelay = 10000;
 
     function showChallenge(index) {
         challengeItems.forEach((el, i) => {
@@ -1373,28 +1335,6 @@ def home() :
     """
     html(f"""<div>{html_block_info_robots}</div>{js_switch_challenge}
          """, height=600)
-
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_QhPDKKjQxkbVKkmwiu8jujseBms7anUs9Jd42Nj-0Wjnf2HnAZQVLa8WVcac5UrkB0jnap5KA0hk/pub?gid=867491542&single=true&output=csv"
-    df_sond = pd.read_csv(url)
-
-    st.subheader("   ", anchor = "poll")
-    st.subheader("📊 Poll results ")
-
-    counts = df_sond["What is your feeling about robots ?"].value_counts().reset_index()
-    counts.columns = ["Feeling", "Count"]
-    if "What is your feeling about robots ?" in df_sond.columns:
-        fig_sond = px.bar(
-            counts,
-            x="Feeling",
-            y="Count",
-            color="Feeling",
-            title="Feeling regarding robots",
-            text="Count",
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-
-        st.plotly_chart(fig_sond, use_container_width=True)
-
 
     st.divider()
 
@@ -1425,7 +1365,7 @@ def home() :
 
 
     # javascript to allow autoscroll
-    display_time_seconds = 2  # Display time of each section
+    display_time_seconds = 30  # Display time of each section
 
     js_code = f"""
             <script>
@@ -1450,5 +1390,5 @@ def home() :
                     setTimeout(scrollToSection, nextDelay);
                 }}
                 setTimeout(scrollToSection, 500);</script>"""
-    #html(f"""{js_code}""")
+    #html(f"""{js_code}""") # activate automatic display
 

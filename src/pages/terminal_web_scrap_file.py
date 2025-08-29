@@ -13,6 +13,8 @@ from langchain.tools import tool
 from langchain_tavily import TavilySearch
 from langgraph.prebuilt import create_react_agent
 
+from src.pages import companies_webscrape
+
 load_dotenv()
 general_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -507,8 +509,13 @@ def parse_robot_json_output(llm_output: str):
 
 cpt_count = 0
 print("launching")
-choice = input("Do you want to look for new robots ? (y/n)").lower()
-if choice == "y":
+choice = input("Do you want to look for new robots ? (y/n) or do you want to update companies' financial data ? (c)").lower()
+if choice=="c":
+    print("Looking for companies financial results. Please wait for it to finish")
+    companies_webscrape(general_directory)
+    print("Search completed")
+
+elif choice == "y":
     latest_robots = find_robots_agent.invoke({"messages": [("human", f"""
         Using the available tools as many times as you want, find the most recent **humanoid** robots (bipedal or wheeled ONLY — absolutely NO quadrupedal or animal-like robots) unveiled on the given websites.
 
@@ -656,9 +663,9 @@ def process_robot(json_list, filename):
     print("\n🎉 All robots have been processed !")
 
 
-process_robot(latest_robots, os.path.join(general_directory,"humanoid_data.csv"))
+process_robot(latest_robots, os.path.join(general_directory,"../../data/humanoid_data.csv"))
 
-df_humanoid_data = pd.read_csv(os.path.join(general_directory,"humanoid_data.csv"))
+df_humanoid_data = pd.read_csv(os.path.join(general_directory,"../../data/humanoid_data.csv"))
 df_humanoid_data["Robot Name"] = df_humanoid_data["Robot Name"].str.strip()
 df_sans_doublons = df_humanoid_data.drop_duplicates(subset=['Robot Name'], keep='last')
 df_sans_doublons = df_sans_doublons[df_sans_doublons["Mobility Type"] != "quadrupedal"]
@@ -685,7 +692,7 @@ prompt_cleaning = """
                            - "Other" → If irrelevant.  
 
                     2. **Unify similar terms**:  
-                       Example: "deep learning", "DeepLearning", "DL" → "DL"  
+                       Example: "deep learning", "DeepLearning", "DL" → "DL"  ; "reinforcement learning" -> "RL"
                        Example : "Vision-Language-Action Model" → "VLA"
                        Example: "RGB-D", "3D", "Depth camera", "stereo" → "RGBD"  
                        Example : "Advanced safety systems", "Advanced safety", "Comprehensive safety..." → "Advanced safety protocols"  
@@ -713,26 +720,22 @@ prompt_cleaning = """
                     """
 
 # LLM setup
-
+print("Please wait for the database to be cleaned")
 llm_clean = ChatOpenAI(temperature=0, model="gpt-4o-mini", openai_api_key=os.getenv("OPENAI_API_KEY"))
 
-clean_agent = create_react_agent(llm_clean, tools=[], prompt=prompt_cleaning)
-
+cleaning_agent = create_react_agent(llm_clean, tools=[], prompt=prompt_cleaning)
 
 def clean_and_replace_column(df, col):
     try:
         unique_values = df[col].dropna().astype(str).unique().tolist()
-        response_text = clean_agent.invoke({"messages": [("human", f"""
+        response_text = cleaning_agent.invoke({"messages": [("human", f"""
         You can clean : 
                     Column: {col}  
                     Values: {unique_values}  
         """)]})["messages"][-1].content
         response_text = response_text.replace("```python", "").replace("```", "")
-        print(response_text)
-        # response_text = llm_clean.predict(prompt)
 
         cleaned_mapping = ast.literal_eval(response_text)
-        print(cleaned_mapping)
 
         df[col] = df[col].astype(str).map(cleaned_mapping).fillna("")
         return response_text
@@ -740,10 +743,13 @@ def clean_and_replace_column(df, col):
         return f"An error occurred: {str(e)}"
 
 
-col_to_check = ["Vision Sensors type", "AI Technology used"]
+col_to_check = ["Vision Sensors type", "Speaker", "Microphone", "Safety Features", "Actuator Type",
+                                        "Reducer Type",
+                                        "Motor Type", "Force Sensor", "Encoder per Actuator", "Computing Power",
+                                        "AI Technology used"]
 
 for col in col_to_check:
     print(clean_and_replace_column(df_sans_doublons, col))
     print(col + " cleaned")
 
-df_sans_doublons.to_csv(os.path.join(general_directory,"humanoid_data_cleaned.csv"))
+df_sans_doublons.to_csv(os.path.join(general_directory,"../../data/humanoid_data_cleaned.csv"))
